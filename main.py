@@ -1,0 +1,64 @@
+from click import command
+import analyze
+import strategy
+import csv
+import time
+from Constant import EXPONENTIAL_AVERAGE_WINDOW
+
+import _thread as thread
+import flaskApp
+import Common
+
+
+def fetchAndAnalyseData():
+    with open('Nifty50.csv') as csvfile:
+        fileReader = csv.DictReader(csvfile)
+        # next(fileReader)
+        for row in fileReader:
+            analyze.update(row)
+            strategy.update()
+    with open('result.csv', 'w', newline='') as csvfile:
+        csvwriter = csv.writer(csvfile)
+        csvwriter.writerow(["Date", "Type", "open", "close",
+                           "low", "High", "Candle Mean", "Moving Average Short", "Moving Average Medium", "Moving Average Long", "EXPONENTIAL AVERAGE", "RSI", "VWAP", "Pattern"])
+        for t in Common.tickData:
+            csvwriter.writerow([str(t.date), str(t.candle.type), str(t.candle.open), str(t.candle.close), str(
+                t.candle.low), str(t.candle.high), str(t.candle.mean), str(t.indicator.movingAverageShortClose), str(t.indicator.movingAverageMediumClose), str(t.indicator.movingAverageLongClose), str(t.indicator.exponentialAverageClose), str(t.indicator.RSI), t.indicator.VWAP, t.pattern])
+
+    with open('rsi.csv', 'w', newline='') as csvfile:
+        csvwriter = csv.writer(csvfile)
+        csvwriter.writerow(["Date", "close", "Gain", "GainAverage",
+                           "loseAverage", "Strngth Index", "RSI"])
+        for t in Common.tickData:
+            csvwriter.writerow([str(t.date), str(t.candle.close), str(t.candle.gain), str(t.candle.gainAverage), str(
+                t.candle.loseAverage), str(t.indicator.relativeStrength), str(t.indicator.RSI)])
+
+
+# fetchAndAnalyseData()
+# dict = {}
+# i = 0
+# for t in Common.tickData:
+#     dict[i] = t.serialize()
+#     i = i+1
+# print(dict)
+# exit()
+print("start")
+try:
+    print("_______________________________________________")
+    print("Starting Flask")
+    print("_______________________________________________")
+    thread.start_new_thread(flaskApp.startFlask, ())
+
+    print("_______________________________________________")
+    print("Fetch Data")
+    print("_______________________________________________")
+
+    thread.start_new_thread(fetchAndAnalyseData, ())
+except Exception as e:
+    print("Can not start flask")
+    print(e)
+
+
+print("All Threads started")
+while 1:
+    time.sleep(1)
