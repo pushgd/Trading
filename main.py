@@ -3,45 +3,51 @@ import analyze
 import strategy
 import csv
 import time
-from Constant import EXPONENTIAL_AVERAGE_WINDOW
+import Constant
 
 import _thread as thread
-import flaskApp
+# import flaskApp
 import Common
+import execute
 
 
 def fetchAndAnalyseData():
+    execute.init()
     with open('Nifty50.csv') as csvfile:
         fileReader = csv.DictReader(csvfile)
         # next(fileReader)
         for row in fileReader:
-            analyze.update(row)
-            strategy.update()
-    with open('result.csv', 'w', newline='') as csvfile:
-        csvwriter = csv.writer(csvfile)
-        csvwriter.writerow(["Date", "Type", "open", "close",
-                           "low", "High", "Candle Mean", "Moving Average Short", "Moving Average Medium", "Moving Average Long", "EXPONENTIAL AVERAGE", "RSI", "VWAP", "Pattern"])
-        for t in Common.tickData:
-            csvwriter.writerow([str(t.date), str(t.candle.type), str(t.candle.open), str(t.candle.close), str(
-                t.candle.low), str(t.candle.high), str(t.candle.mean), str(t.indicator.movingAverageShortClose), str(t.indicator.movingAverageMediumClose), str(t.indicator.movingAverageLongClose), str(t.indicator.exponentialAverageClose), str(t.indicator.RSI), t.indicator.VWAP, t.pattern])
+            execute.update(row)
+            # analyze.update(row)
+            # strategy.update()
 
-    with open('rsi.csv', 'w', newline='') as csvfile:
-        csvwriter = csv.writer(csvfile)
-        csvwriter.writerow(["Date", "close", "Gain", "GainAverage",
-                           "loseAverage", "Strngth Index", "RSI"])
-        for t in Common.tickData:
-            csvwriter.writerow([str(t.date), str(t.candle.close), str(t.candle.gain), str(t.candle.gainAverage), str(
-                t.candle.loseAverage), str(t.indicator.relativeStrength), str(t.indicator.RSI)])
+    Common.SymbolDict['Nifty50'].exportCSV('Nifty50',
+                                           Constant.KEY_DATE, Constant.KEY_OPEN, Constant.KEY_HIGH, Constant.KEY_CLOSE, Constant.KEY_LOW, Constant.KEY_VOLUME, Constant.KEY_PATTERN, Constant.KEY_MOVING_AVERAGE_SHORT_CLOSE)
+    # with open('result.csv', 'w', newline='') as csvfile:
+    #     csvwriter = csv.writer(csvfile)
+    #     csvwriter.writerow(["Date", "Type", "open", "close",
+    #                        "low", "High", "Candle Mean", "Moving Average Short", "Moving Average Medium", "Moving Average Long", "EXPONENTIAL AVERAGE", "RSI", "VWAP", "Pattern"])
+    #     for t in Common.tickData:
+    #         csvwriter.writerow([str(t.date), str(t.candle.type), str(t.candle.open), str(t.candle.close), str(
+    #             t.candle.low), str(t.candle.high), str(t.candle.mean), str(t.indicator.movingAverageShortClose), str(t.indicator.movingAverageMediumClose), str(t.indicator.movingAverageLongClose), str(t.indicator.exponentialAverageClose), str(t.indicator.RSI), t.indicator.VWAP, t.pattern])
+
+    # with open('rsi.csv', 'w', newline='') as csvfile:
+    #     csvwriter = csv.writer(csvfile)
+    #     csvwriter.writerow(["Date", "close", "Gain", "GainAverage",
+    #                        "loseAverage", "Strngth Index", "RSI"])
+    #     for t in Common.tickData:
+    #         csvwriter.writerow([str(t.date), str(t.candle.close), str(t.candle.gain), str(t.candle.gainAverage), str(
+    #             t.candle.loseAverage), str(t.indicator.relativeStrength), str(t.indicator.RSI)])
 
 
-# fetchAndAnalyseData()
+fetchAndAnalyseData()
 # dict = {}
 # i = 0
 # for t in Common.tickData:
 #     dict[i] = t.serialize()
 #     i = i+1
 # print(dict)
-# exit()
+exit()
 print("start")
 try:
     print("_______________________________________________")
