@@ -10,3 +10,6 @@ def init():
 def update(data):
     for key in Common.SymbolDict.keys():
         Common.SymbolDict[key].update(data)
+
+    for key in Common.SymbolDict.keys():
+        Common.SymbolDict[key].updateTrade(float(data['close']))

@@ -166,7 +166,8 @@ def checkPatterns(symbol):
     pattern = checkEngulfing(symbol)
     if pattern != False:
         symbol.top.info[Constant.KEY_PATTERN].append(pattern)
-
+    if symbol.top.info[Constant.KEY_DATE] == '10-02-2022 10.00':
+        print('stop')
     pattern = checkHarami(symbol)
     if pattern != False:
         symbol.top.info[Constant.KEY_PATTERN].append(pattern)

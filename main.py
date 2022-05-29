@@ -13,7 +13,7 @@ import execute
 
 def fetchAndAnalyseData():
     execute.init()
-    with open('Nifty50.csv') as csvfile:
+    with open('WIPRO15MinJan22ToMay.csv') as csvfile:
         fileReader = csv.DictReader(csvfile)
         # next(fileReader)
         for row in fileReader:

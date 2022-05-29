@@ -1,3 +1,20 @@
-#c {
+#main {
+    display: inline-block;
+}
+
+.symbol {
+    margin: 5px;
+}
+
+.textBlock {
+    margin: 5px;
     display: flex;
+}
+
+.symbol:nth-of-type(even) {
+    background-color: rgb(150, 150, 150);
+}
+
+.symbol:nth-of-type(odd) {
+    background-color: rgb(175, 175, 175);
 }

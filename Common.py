@@ -4,6 +4,37 @@ SymbolDict = {}
 watchlist = []
 
 
+def isUpwardPattern(t):
+    return ((t.isPattern(Constant.HARAMI) and t.isBull())
+            or (t.isPattern(Constant.ENGULFING) and t.isBull())
+            or (t.isPattern(Constant.ENGULFING) and t.isBull())
+            or t.isPattern(Constant.PIERCING)
+            or t.isPattern(Constant.INVERTED_PIERCING)
+            or t.isPattern(Constant.MORNING_STAR))
+
+
+def getLowestValue(symbol):
+    t = symbol.tickData[symbol.topIndex-1]
+    if(t.isPattern(Constant.MORNING_STAR) or t.isPattern(Constant.EVENING_STAR)):
+        l = symbol.tickData[symbol.topIndex-4:symbol.topIndex-1]
+    else:
+        l = symbol.tickData[symbol.topIndex-3:symbol.topIndex-1]
+    min = 99999999
+    for i in l:
+        if i.info[Constant.KEY_LOW] < min:
+            min = i.info[Constant.KEY_LOW]
+    return min
+
+
+class Trade:
+    def __init__(self, buyTrigger, stopLoss, takeProfit, tick):
+        self.status = Constant.TRADE_NOT_STARTED
+        self.buyTrigger = buyTrigger
+        self.stopLoss = stopLoss
+        self.takeProfit = takeProfit
+        self.tick = tick
+
+
 class Tick:
     def __init__(self, data):
         self.info = {}
@@ -24,6 +55,7 @@ class Tick:
         self.info[Constant.KEY_AVERAGE_GAIN] = 0
         self.info[Constant.KEY_AVERAGE_LOSS] = 0
         self.info[Constant.KEY_PATTERN] = []
+        self.info[Constant.KEY_STRATEGY] = []
 
     def __str__(self):
 
