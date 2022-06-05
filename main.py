@@ -9,6 +9,8 @@ import _thread as thread
 # import flaskApp
 import Common
 import execute
+import API
+import DBHelper
 
 
 def fetchAndAnalyseData():
@@ -31,6 +33,7 @@ def fetchAndAnalyseData():
     #         csvwriter.writerow([str(t.date), str(t.candle.type), str(t.candle.open), str(t.candle.close), str(
     #             t.candle.low), str(t.candle.high), str(t.candle.mean), str(t.indicator.movingAverageShortClose), str(t.indicator.movingAverageMediumClose), str(t.indicator.movingAverageLongClose), str(t.indicator.exponentialAverageClose), str(t.indicator.RSI), t.indicator.VWAP, t.pattern])
 
+
     # with open('rsi.csv', 'w', newline='') as csvfile:
     #     csvwriter = csv.writer(csvfile)
     #     csvwriter.writerow(["Date", "close", "Gain", "GainAverage",
@@ -38,9 +41,11 @@ def fetchAndAnalyseData():
     #     for t in Common.tickData:
     #         csvwriter.writerow([str(t.date), str(t.candle.close), str(t.candle.gain), str(t.candle.gainAverage), str(
     #             t.candle.loseAverage), str(t.indicator.relativeStrength), str(t.indicator.RSI)])
+# API.init()
+DBHelper.init()
+API.initLiveData(execute.onNewData)
 
-
-fetchAndAnalyseData()
+# fetchAndAnalyseData()
 # dict = {}
 # i = 0
 # for t in Common.tickData:

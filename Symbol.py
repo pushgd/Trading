@@ -1,36 +1,23 @@
 import Common
 import Constant
 import analyze
-import strategy
 import csv
 
 
 class Symbol:
-    def __init__(self, name, symbol, riskfactor=1):
+    def __init__(self, name, symbol, scripCode, riskfactor=1):
         self.name = name
         self.symbol = symbol
+        self.scripCode = scripCode
         self.tickData = []
         self.riskFactor = riskfactor
         self.topIndex = -1
         self.watchList = []
         self.tradeList = []
+        self.exchangeType = 'E'
 
     def update(self, data):
-        self.topIndex = self.topIndex+1
-        self.tickData.append(Common.Tick(data))
-        self.top = self.tickData[self.topIndex]
-        if(self.topIndex > 0):
-            if(self.top.info[Constant.KEY_CLOSE] > self.tickData[self.topIndex-1].info[Constant.KEY_CLOSE]):
-                self.top.info[Constant.KEY_GAIN] = self.top.info[Constant.KEY_CLOSE] - \
-                    self.tickData[self.topIndex-1].info[Constant.KEY_CLOSE]
-                self.top.info[Constant.KEY_LOSS] = 0
-            else:
-                self.top.info[Constant.KEY_LOSS] = abs(
-                    self.top.info[Constant.KEY_CLOSE] - self.tickData[self.topIndex-1].info[Constant.KEY_CLOSE])
-                self.top.info[Constant.KEY_GAIN] = 0
-
-        analyze.update(self)
-        strategy.update(self)
+        self.addNewTick(data)
 
     def updateTrade(self, price):
         for trade in self.tradeList:
@@ -68,3 +55,18 @@ class Symbol:
         takeProfit = buyTrigger + abs(buyTrigger-stopLoss)*self.riskFactor
         self.tradeList.append(Common.Trade(
             buyTrigger, stopLoss, takeProfit, self.top))
+
+    def addNewTick(self, data):
+        self.topIndex = self.topIndex+1
+        self.tickData.append(Common.Tick(data))
+        self.top = self.tickData[self.topIndex]
+        if(self.topIndex > 0):
+            if(self.top.info[Constant.KEY_CLOSE] > self.tickData[self.topIndex-1].info[Constant.KEY_CLOSE]):
+                self.top.info[Constant.KEY_GAIN] = self.top.info[Constant.KEY_CLOSE] - \
+                    self.tickData[self.topIndex-1].info[Constant.KEY_CLOSE]
+                self.top.info[Constant.KEY_LOSS] = 0
+            else:
+                self.top.info[Constant.KEY_LOSS] = abs(
+                    self.top.info[Constant.KEY_CLOSE] - self.tickData[self.topIndex-1].info[Constant.KEY_CLOSE])
+                self.top.info[Constant.KEY_GAIN] = 0
+        analyze.update(self)

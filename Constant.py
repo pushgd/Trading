@@ -1,4 +1,7 @@
 # tick date
+from ast import Constant
+
+
 DATE = 0
 OPEN = 1
 HIGH = 2
@@ -39,7 +42,8 @@ RSI_WINDOW = 14
 
 # trade parameters
 RISK_REWARD_RATIO = 2
-
+STRATEGY_CHECK_DELAY = 5
+CANDLE_CRATION_TIME = 5*60  # in sec
 
 KEY_DATE = 'date'
 KEY_HIGH = 'high'
