@@ -17,70 +17,37 @@
 
 <body>
     <h1>List</h1>
-    <div id="main">
-
-        <div class="symbol">
-            <div class="textBlock">
-                <div id="Open" class="textBlock">
-                    <div>Open:</div>
-                    <div>1234</div>
-                </div>
-                <div id="High" class="textBlock">
-                    <div>High:</div>
-                    <div>1234</div>
-                </div>
-                <div id="Close" class="textBlock">
-                    <div>Close:</div>
-                    <div>1234</div>
-                </div>
-                <div id="Low" class="textBlock">
-                    <div>Low:</div>
-                    <div>1234</div>
-                </div>
-            </div>
-            <table id="dataTable" border=1>
-                <tr>
-                    <th>Date</th>
-                    <th>Open</th>
-                    <th>Close</th>
-                    <th>High</th>
-                    <th>Low</th>
-                </tr>
-                <tr>
-                    <td>Date</td>
-                    <td>Open</td>
-                    <td>Close</td>
-                    <td>High</td>
-                    <td>Low</td>
-                </tr>
-            </table>
+    <div id="addSymbol">
+        <div>
+            <label for="SymbolName">Name</label>
+            <select id="SymbolName"></select>
         </div>
-
-        <div class="symbol">
-            <table id="dataTable" border=1>
-                <tr>
-                    <th>Date</th>
-                    <th>Open</th>
-                    <th>Close</th>
-                    <th>High</th>
-                    <th>Low</th>
-                </tr>
-                <tr>
-                    <td>Date</td>
-                    <td>Open</td>
-                    <td>Close</td>
-                    <td>High</td>
-                    <td>Low</td>
-                </tr>
-            </table>
+        <div>
+            <label for="SymbolID">ID</label>
+            <Input id="SymbolID"></Input>
         </div>
-        <div style="background-color: #00FF00;">
-            <div id='graph'></div>
+        <div>
+            <label for="RiskRatio">Risk Ratio</label>
+            <Input id="RiskRatio" type="number"></Input>
+        </div>
+        <div>
+            <label for="strategy">Strategy</label>
+            <select id="strategy">
+            </select>
+        </div>
+        <div id="addSymbolButton" class="button addSymbolButton">
+            Add Symbol
         </div>
     </div>
+    <div id="symbolContainer">
 
-    <script src=" script.js" async defer>
-    </script>
+    </div>
+
+
 </body>
+<script src=" initUI.js">
+</script>
+<script src="updateUI.js">
+</script>
 
 </html>

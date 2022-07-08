@@ -1,4 +1,3 @@
-from click import command
 import analyze
 import strategy
 import csv
@@ -11,10 +10,15 @@ import Common
 import execute
 import API
 import DBHelper
-
+import flaskApp
 
 def fetchAndAnalyseData():
+    print("Fetch Started")
+    # API.init()
+    strategy.init()
+    DBHelper.init()
     execute.init()
+    API.initLiveData(execute.onNewData)
     with open('WIPRO15MinJan22ToMay.csv') as csvfile:
         fileReader = csv.DictReader(csvfile)
         # next(fileReader)
@@ -42,8 +46,10 @@ def fetchAndAnalyseData():
     #         csvwriter.writerow([str(t.date), str(t.candle.close), str(t.candle.gain), str(t.candle.gainAverage), str(
     #             t.candle.loseAverage), str(t.indicator.relativeStrength), str(t.indicator.RSI)])
 # API.init()
-DBHelper.init()
-API.initLiveData(execute.onNewData)
+# strategy.init()
+# DBHelper.init()
+# execute.init()
+# API.initLiveData(execute.onNewData)
 
 # fetchAndAnalyseData()
 # dict = {}
@@ -52,7 +58,8 @@ API.initLiveData(execute.onNewData)
 #     dict[i] = t.serialize()
 #     i = i+1
 # print(dict)
-exit()
+# exit()
+# execute.init()
 print("start")
 try:
     print("_______________________________________________")

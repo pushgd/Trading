@@ -1,7 +1,17 @@
 import Constant
-
+import math
+import time
 SymbolDict = {}
 watchlist = []
+strategyDict={}
+
+
+
+def getNextGannLevel(n):
+    return math.pow(math.ceil(math.sqrt(n)*4)/4,2)
+
+def getPreviousGannLevel(n):
+    return math.pow(math.floor(math.sqrt(n)*4)/4,2)
 
 
 def isUpwardPattern(t):
@@ -27,12 +37,19 @@ def getLowestValue(symbol):
 
 
 class Trade:
-    def __init__(self, buyTrigger, stopLoss, takeProfit, tick):
-        self.status = Constant.TRADE_NOT_STARTED
-        self.buyTrigger = buyTrigger
-        self.stopLoss = stopLoss
-        self.takeProfit = takeProfit
-        self.tick = tick
+    def __init__(self,symbol):
+        self.status = Constant.TRADE_LOOKING_FOR_ENTRY
+        self.entryPrice = 0
+        self.entryTime = 0
+        self.exitPrice = 0
+        self.exitTime = 0
+        self.buyTrigger = -1
+        self.stopLoss = 0
+        self.takeProfit =0
+        self.tick = 0
+        self.strategy = None
+        self.symbol = symbol
+        self.ID = time.time()
 
 
 class Tick:
@@ -43,7 +60,7 @@ class Tick:
         low = self.info[Constant.KEY_LOW] = (float)(data['low'])
         open = self.info[Constant.KEY_OPEN] = (float)(data['open'])
         close = self.info[Constant.KEY_CLOSE] = (float)(data['close'])
-        self.info[Constant.KEY_VOLUME] = (float)(data['VOLUME'])
+        self.info[Constant.KEY_VOLUME] = (float)(data['volume'])
         self.info[Constant.KEY_BODY_LENGTH] = abs(open - close)
         self.info[Constant.KEY_LENGTH] = abs(high - low)
         self.info[Constant.KEY_TYPE] = Constant.BULL if close > open else Constant.BEAR
