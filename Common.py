@@ -46,7 +46,7 @@ class Trade:
         self.buyTrigger = -1
         self.stopLoss = 0
         self.takeProfit =0
-        self.tick = 0
+        self.tick = None
         self.strategy = None
         self.symbol = symbol
         self.ID = time.time()

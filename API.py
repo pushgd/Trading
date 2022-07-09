@@ -23,8 +23,8 @@ def initLiveData(callback):
     for key in Common.SymbolDict.keys():
         s.append(Common.SymbolDict[key].scripCode)
     print(s)
-    f = Feed(s,accid, userID,callback)
-    f.subscribe(["235127_MCX"], callback, subscribe_order=False)
+    f = Feed(accid, userID,"python-settings.ini")
+    f.subscribe(s, callback)
 
 
 def dataReceived(data):

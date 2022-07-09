@@ -1,5 +1,7 @@
 const getSymbolURL = 'http://127.0.0.1:8080/getallsymbols'
 const getStrategyURL = 'http://127.0.0.1:8080/getallstrategy'
+const activateSymbolURL = 'http://127.0.0.1:8080/activateSymbol/'
+const deactivateSymbolURL = 'http://127.0.0.1:8080/deactivateSymbol/'
 
 
 const symbolSelect = document.querySelector("#SymbolName");
@@ -99,7 +101,7 @@ const callFlask = async () => {
 // console.log("Called flask")
 
 
-function addSymbolButtonAction() {
+async function addSymbolButtonAction() {
     if (symbolList.indexOf(symbolSelect.value) > -1) {
         alert("Symbol Already added");
         return;
@@ -177,6 +179,15 @@ function addSymbolButtonAction() {
     `;
     container.appendChild(div);
     symbolList[symbolList.length] = symbolSelect.value;
+
+    let xhr = new XMLHttpRequest();
+    xhr.open("POST", activateSymbolURL+symbolSelect.value, false);
+    console.log(xhr.send());
+    xhr.onload(function(data) {
+        console.log(data);
+    })
+
+
     // console.log(strategy.options[0].selected);
     // for (let i = 0; i < strategy.options.length; i++) {
     //     if (strategy.options[i].selected) {

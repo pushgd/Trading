@@ -25,11 +25,17 @@ class Symbol:
         self.high = -1
         self.low = 99999
         self.parameters = {}
+        self.isActive = False
 
     def update(self, data):
         self.addNewTick(data)
         self.checkStartegy()
 
+    def activate(self):
+        self.isActive = True
+    
+    def deactivate(self):
+        self.isActive = False 
 
     def old_updateTrade(self, price):
         for trade in self.tradeList:
@@ -95,6 +101,7 @@ class Symbol:
         trade.entryTime = self.top.info[Constant.KEY_DATE]
         trade.strategy.onEnter(trade)
         trade.status = Constant.TRADE_ENTRY
+        trade.tick = self.top
         
         print("Entering Trade")
 

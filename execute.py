@@ -63,18 +63,9 @@ def onNewData(message):
         volume = float(d['response']['data']['c6'])
         createCandle(lastTradePrice, symbol,volume)
         # Common.SymbolDict[symbol].updateTrade(lastTradePrice)
-        Common.SymbolDict[symbolMapping[symbol]].onNewData(lastTradePrice,volume)
-    # try:
-    #     temp[symbol]=temp[symbol]+1
-    # except:
-    #     temp[symbol]=1
-    # print(len(temp.keys()))
-    # print(temp)
+        if Common.SymbolDict[symbolMapping[symbol]].isActive:
+            Common.SymbolDict[symbolMapping[symbol]].onNewData(lastTradePrice,volume)
 
-    # for key in Common.SymbolDict.keys():
-    #     Common.SymbolDict[key].updateTrade(float(d['response']['data']['a9']))
-    # for key in Common.SymbolDict.keys():
-    #     Common.SymbolDict[key].update(message)
 
 
 def onCandleComplete(symbol, data):
@@ -112,3 +103,11 @@ def createCandle(price, symbol, volume):
         high[symbol] = -1
         low[symbol] = 999999
         tempCandleData[symbol].clear()
+def activateSymbol(symbol):
+    print("Activating symbol "+symbol)
+    Common.SymbolDict[symbol].activate()
+
+def deactivateSymbol(symbol):
+    print("Deactivating symbol "+symbol)
+    Common.SymbolDict[symbol].deactivate()    
+

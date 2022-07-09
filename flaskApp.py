@@ -3,6 +3,7 @@ from random import randint, random
 from flask import Flask, jsonify
 import Constant
 import Common
+import execute
 app = Flask(__name__)
 import logging
 log = logging.getLogger('werkzeug')
@@ -89,5 +90,19 @@ def getTrade(symbol):
     replay.pop("symbol")
     replay.pop("strategy")
     replay = jsonify(replay)
+    replay.headers.add('Access-Control-Allow-Origin', '*')
+    return replay
+
+@app.route("/activateSymbol/<symbol>", methods=['POST'])
+def activateSymbol(symbol):
+    execute.activateSymbol(symbol)
+    replay = jsonify({'1':'1'})
+    replay.headers.add('Access-Control-Allow-Origin', '*')
+    return replay
+
+@app.route("/deactivateSymbol/<symbol>", methods=['POST'])
+def deactivateSymbol(symbol):
+    execute.deactivateSymbol(symbol)
+    replay = jsonify({'1':'1'})
     replay.headers.add('Access-Control-Allow-Origin', '*')
     return replay
