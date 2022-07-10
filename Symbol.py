@@ -9,6 +9,7 @@ import DBHelper
 
 class Symbol:
     def __init__(self, name, symbol, scripCode, riskfactor=1):
+        self.top = None
         self.name = name
         self.symbol = symbol
         self.scripCode = scripCode
@@ -95,6 +96,7 @@ class Symbol:
         trade.entryTime = self.top.info[Constant.KEY_DATE]
         trade.strategy.onEnter(trade)
         trade.status = Constant.TRADE_ENTRY
+        trade.tick = self.top
         
         print("Entering Trade")
 

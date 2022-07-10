@@ -37,7 +37,7 @@ def getLowestValue(symbol):
 
 
 class Trade:
-    def __init__(self,symbol):
+    def __init__(self, symbol):
         self.status = Constant.TRADE_LOOKING_FOR_ENTRY
         self.entryPrice = 0
         self.entryTime = 0
@@ -45,7 +45,7 @@ class Trade:
         self.exitTime = 0
         self.buyTrigger = -1
         self.stopLoss = 0
-        self.takeProfit =0
+        self.takeProfit = 0
         self.tick = 0
         self.strategy = None
         self.symbol = symbol
@@ -54,13 +54,12 @@ class Trade:
 
 class Tick:
     def __init__(self, data):
-        self.info = {}
-        self.info[Constant.KEY_DATE] = data['date']
-        high = self.info[Constant.KEY_HIGH] = (float)(data['high'])
-        low = self.info[Constant.KEY_LOW] = (float)(data['low'])
-        open = self.info[Constant.KEY_OPEN] = (float)(data['open'])
-        close = self.info[Constant.KEY_CLOSE] = (float)(data['close'])
-        self.info[Constant.KEY_VOLUME] = (float)(data['volume'])
+        self.info = {Constant.KEY_DATE: data['date']}
+        high = self.info[Constant.KEY_HIGH] = float(data['high'])
+        low = self.info[Constant.KEY_LOW] = float(data['low'])
+        open = self.info[Constant.KEY_OPEN] = float(data['open'])
+        close = self.info[Constant.KEY_CLOSE] = float(data['close'])
+        self.info[Constant.KEY_VOLUME] = float(data['volume'])
         self.info[Constant.KEY_BODY_LENGTH] = abs(open - close)
         self.info[Constant.KEY_LENGTH] = abs(high - low)
         self.info[Constant.KEY_TYPE] = Constant.BULL if close > open else Constant.BEAR
