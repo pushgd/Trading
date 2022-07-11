@@ -1,7 +1,7 @@
 import Constant
 
 
-def update(symbol):
+def update(tickInfo):
     # candels.append(data)
     # c = Candle()
 
@@ -9,24 +9,24 @@ def update(symbol):
     # global topIndex
     # topIndex = Common.topIndex
     # symbol.tickData.append(Tick(data))
-    if(symbol.topIndex > 0):
-        symbol.top.info[Constant.KEY_CUMMULATIVE_VOLUME] = symbol.tickData[symbol.topIndex -
-                                                                           1].info[Constant.KEY_CUMMULATIVE_VOLUME]+symbol.tickData[symbol.topIndex].info[Constant.KEY_VOLUME]
+    if(tickInfo.topIndex > 0):
+        tickInfo.top.info[Constant.KEY_CUMMULATIVE_VOLUME] = tickInfo.tickData[tickInfo.topIndex -
+                                                                               1].info[Constant.KEY_CUMMULATIVE_VOLUME] + tickInfo.tickData[tickInfo.topIndex].info[Constant.KEY_VOLUME]
     else:
-        symbol.top.info[Constant.KEY_CUMMULATIVE_VOLUME] = symbol.top.info[Constant.KEY_VOLUME]
+        tickInfo.top.info[Constant.KEY_CUMMULATIVE_VOLUME] = tickInfo.top.info[Constant.KEY_VOLUME]
     # candels[symbol.topIndex].append(candels[])
-    calculateSMA(symbol)
-    calculateEMA(symbol)
-    if symbol.topIndex >= Constant.RSI_WINDOW:
-        calculateRSI(symbol)
+    calculateSMA(tickInfo)
+    calculateEMA(tickInfo)
+    if tickInfo.topIndex >= Constant.RSI_WINDOW:
+        calculateRSI(tickInfo)
     # calculateVWAP()
 
-    checkPatterns(symbol)
+    checkPatterns(tickInfo)
 
     # print(symbol.tickData[symbol.topIndex].pattern)
     # print(symbol.tickData[symbol.topIndex])
 
-    return symbol.top
+    return tickInfo.top
 
 
 def calculateSMA(symbol):

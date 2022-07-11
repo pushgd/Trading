@@ -1,5 +1,7 @@
 const getSymbolURL = 'http://127.0.0.1:8080/getallsymbols'
 const getStrategyURL = 'http://127.0.0.1:8080/getallstrategy'
+const activateSymbolURL = 'http://127.0.0.1:8080/activateSymbol/'
+const deactivateSymbolURL = 'http://127.0.0.1:8080/deactivateSymbol/'
 
 
 const symbolSelect = document.querySelector("#SymbolName");
@@ -99,7 +101,7 @@ const callFlask = async () => {
 // console.log("Called flask")
 
 
-function addSymbolButtonAction() {
+async function addSymbolButtonAction() {
     if (symbolList.indexOf(symbolSelect.value) > -1) {
         alert("Symbol Already added");
         return;
@@ -111,28 +113,7 @@ function addSymbolButtonAction() {
       <div class="headerText" id="symbolName">Symbol: ${symbolSelect.value}</div>
             <div class="headerText gain" id="currentPrice">Current Price</div>
                <div class="headerText" id="riskFactor">Risk Factor: ${riskFactor.value}</div>
-            <div class="ohlcInfo">
-                <div id="Open" class="textBlock">
-                    <div id="title">Open:</div>
-                    <div id="value">1234</div>
-                </div>
-                <div id="High" class="textBlock">
-                    <div id="title">High:</div>
-                    <div id="value">1234</div>
-                </div>
-                <div id="Close" class="textBlock">
-                    <div id="title">Close:</div>
-                    <div id="value">1234</div>
-                </div>
-                <div id="Low" class="textBlock">
-                    <div id="title">Low:</div>
-                    <div id="value">12345</div>
-                </div>
-                 <div id="RiskFactor" class="textBlock">
-                    <div id="title">Risk Factor:</div>
-                    <div id="value">${riskFactor.value}</div>
-                </div>
-            </div>
+          
             <div class="headerText">Trades</div>
             <div class='tradeList'>
                 <div class="tradeInfo">
@@ -149,7 +130,11 @@ function addSymbolButtonAction() {
                         <div id="value">1234</div>
                     </div>
                     <div id="buyTrigger" class="textBlock">
-                        <div id="title">Entry:</div>
+                        <div id="title">Buy Trigger:</div>
+                        <div id="value">1234</div>
+                    </div>
+                     <div id="entryPrice" class="textBlock">
+                        <div id="title">Entry Price:</div>
                         <div id="value">1234</div>
                     </div>
                     <div id="stoploss" class="textBlock">
@@ -177,6 +162,15 @@ function addSymbolButtonAction() {
     `;
     container.appendChild(div);
     symbolList[symbolList.length] = symbolSelect.value;
+
+    // let xhr = new XMLHttpRequest();
+    // xhr.open("POST", activateSymbolURL + symbolSelect.value, false);
+    // console.log(xhr.send());
+    // xhr.onload(function (data) {
+    //     console.log(data);
+    // })
+
+
     // console.log(strategy.options[0].selected);
     // for (let i = 0; i < strategy.options.length; i++) {
     //     if (strategy.options[i].selected) {

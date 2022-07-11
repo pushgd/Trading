@@ -1,6 +1,7 @@
 from EdelweissAPIConnect import EdelweissAPIConnect, Feed
 import json
 import Common
+import csv
 APIKey = "QDFbQZIsst9A6A"
 AppSecret = "62eM4#YaL+kX5!Rt"
 reqId = "323631b6e4b02fd1"
@@ -22,21 +23,19 @@ def initLiveData(callback):
     s = []
     for key in Common.SymbolDict.keys():
         s.append(Common.SymbolDict[key].scripCode)
-    print(s)
-    f = Feed(s,accid, userID,callback)
-    f.subscribe(["235127_MCX"], callback, subscribe_order=False)
+    f = Feed(accid, userID,"python-settings.ini")
+    f.subscribe(s, callback)
 
+def initLocalFile(callback):
+    print("New Data is here local")
+    i = 0
+    with open('data.csv') as csvfile:
+        fileReader = csv.DictReader(csvfile)
+        # next(fileReader)
+        for row in fileReader:
+            print("Row ",str(i)," price ",row['price'])
+            if i == 421:
+                print(i)
+            i = i+1
+            callback(float(row['price']), float(row['volume']),row['symbol'])
 
-def dataReceived(data):
-    print("New Data is here")
-    # try:
-    #     print(d)
-    #     d = json.loads(data)
-
-    #     # print("open "+d['response']['data']['a0'])
-    #     # print("high "+d['response']['data']['a1'])
-    #     # print("low "+d['response']['data']['a2'])
-    #     print("close "+d['response']['data']['a9'])
-    #     print("close "+d['response']['data']['c6'])
-    # except:
-    #     print("error parsing" + data)

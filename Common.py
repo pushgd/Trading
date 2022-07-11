@@ -5,6 +5,7 @@ SymbolDict = {}
 watchlist = []
 strategyDict={}
 
+localFile = False
 
 
 def getNextGannLevel(n):
@@ -38,7 +39,7 @@ def getLowestValue(symbol):
 
 class Trade:
     def __init__(self, symbol):
-        self.status = Constant.TRADE_LOOKING_FOR_ENTRY
+        self.status = Constant.TRADE_NOT_STARTED
         self.entryPrice = 0
         self.entryTime = 0
         self.exitPrice = 0
@@ -46,10 +47,11 @@ class Trade:
         self.buyTrigger = -1
         self.stopLoss = 0
         self.takeProfit = 0
-        self.tick = 0
+        self.tick = None
         self.strategy = None
         self.symbol = symbol
         self.ID = time.time()
+        self.strategyName = None
 
 
 class Tick:

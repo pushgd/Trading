@@ -12,13 +12,18 @@ import API
 import DBHelper
 import flaskApp
 
+
 def fetchAndAnalyseData():
     print("Fetch Started")
     # API.init()
     strategy.init()
     DBHelper.init()
     execute.init()
-    API.initLiveData(execute.onNewData)
+    if Common.localFile:
+        API.initLocalFile(execute.onNewDataLocal)
+    else:
+        API.initLiveData(execute.onNewData)
+    exit()
     with open('WIPRO15MinJan22ToMay.csv') as csvfile:
         fileReader = csv.DictReader(csvfile)
         # next(fileReader)
