@@ -51,7 +51,6 @@ class Symbol:
                     row.append(tick.info[c])
                 csvwriter.writerow(row)
 
-
     def setStrategy(self, strategy):
         self.strategy.append(strategy)
         trade = Common.Trade(self)
@@ -59,9 +58,11 @@ class Symbol:
         # trade.strategy = Common.strategyDict[strategy]
         if strategy == Constant.STRATEGY_GANN_ANALYSIS:
             s = GannAnalysis(self.OnStrategyEvent, trade)
+            trade.strategy = GannAnalysis(self.OnStrategyEvent, trade)
         elif strategy == Constant.STRATEGY_MA_CROSSOVER_UP:
             s = MACrossover(self.OnStrategyEvent, trade)
-        trade.strategy = GannAnalysis(self.OnStrategyEvent, trade)
+            trade.strategy = MACrossover(self.OnStrategyEvent, trade)
+
         self.tradeList.append(trade)
 
     def onNewData(self, lastTradedPrice, volume):
@@ -69,19 +70,21 @@ class Symbol:
         # self.createCandle(lastTradedPrice, volume)
         for t in self.tradeList:
             if t.status != Constant.TRADE_COMPLETED:
-                t.strategy.update(t,lastTradedPrice,volume)
+                t.strategy.update(t, lastTradedPrice, volume)
 
     def onCandleComplete(self, data):
         DBHelper.inertIntoTick(data[Constant.KEY_OPEN], data[Constant.KEY_HIGH], data[Constant.KEY_CLOSE],
                                data[Constant.KEY_LOW], data[Constant.KEY_VOLUME], self.symbol, data[Constant.KEY_DATE])
         # self.addNewTick(data)
+
     def OnStrategyEvent(self, event, data, strategy):
         if event == Constant.EVENT_CANDLE_CREATED:
             self.onCandleComplete(data)
         if event == Constant.EVENT_TRADE_COMPLETED:
             self.setStrategy(strategy.trade.strategyName)
 
-
-
-
-
+    def exitTrade(self, ID):
+        for t in self.tradeList:
+            if t.ID == ID:
+                t.status = Constant.TRADE_FORCE_EXIT
+                print("Exiting trade ", t.ID, " for symbol ", self.name)

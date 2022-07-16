@@ -27,7 +27,8 @@ def init():
     with open('instruments.csv') as csvfile:
         fileReader = csv.DictReader(csvfile)
         for row in fileReader:
-            if row['active'] == '1':
+            if (row['active'] == '1' and row['exchange'] == 'NSE' and row['assettype'] == 'INDEX')\
+                or (row['active'] == '1' and row['exchange'] == 'NSE' and row['series'] == 'EQ'):
                 id = row['exchangetoken']
                 name = row['symbolname']
                 symbolsIDList.append(id)
@@ -37,19 +38,15 @@ def init():
     for s in symbolsList:
         Common.SymbolDict[s] = Symbol.Symbol(s, s, symbolsIDList[symbolsList.index(s)])
         Common.SymbolDict[s].setStrategy(Constant.STRATEGY_GANN_ANALYSIS)
+        # Common.SymbolDict[s].setStrategy(Constant.STRATEGY_GANN_ANALYSIS)
     # Common.SymbolDict['2885_NSE'] = Symbol.Symbol('2885_NSE', 'RELINS','RELINS')
     # Common.SymbolDict['2643_NSE'] = Symbol.Symbol('2643_NSE', 'Phizer','PHIZER')
     print("Execute Init Done")
 
 
 def update(symbol, data):
-    lastStrategyCheckTime = 0
-    # Common.SymbolDict[symbolMapping[symbol]].addNewTick(data)
-    if (time.time() - lastStrategyCheckTime) >= Constant.STRATEGY_CHECK_DELAY:
-        print("Check Strategy")
-        lastStrategyCheckTime = time.time()
-        Common.SymbolDict[symbolMapping[symbol]].update(data)
-        # strategy.update(Common.SymbolDict[key])
+    Common.SymbolDict[symbolMapping[symbol]].update(data)
+    # strategy.update(Common.SymbolDict[key])
 
 
 temp = {}
@@ -75,13 +72,11 @@ def onNewData(message):
             lastTradePrice = float(d['response']['data']['a9'])
             symbol = d['response']['data']['z3']
             volume = float(d['response']['data']['c6'])
+
+            if Common.SymbolDict[symbolMapping[symbol]].isActive:
+                Common.SymbolDict[symbolMapping[symbol]].onNewData(lastTradePrice, volume)
         except:
             print("error after parsing")
-            # print("New Data for symbol ",symbolMapping[symbol]," LastTradedPrice ",lastTradePrice," volume ",volume)
-        createCandle(lastTradePrice, symbol, volume)
-            # Common.SymbolDict[symbol].updateTrade(lastTradePrice)
-        if Common.SymbolDict[symbolMapping[symbol]].isActive:
-            Common.SymbolDict[symbolMapping[symbol]].onNewData(lastTradePrice, volume)
 
 
 def onNewDataLocal(lastTradePrice, volume, symbol):
@@ -90,41 +85,6 @@ def onNewDataLocal(lastTradePrice, volume, symbol):
     if Common.SymbolDict[symbolMapping[symbol]].isActive:
         Common.SymbolDict[symbolMapping[symbol]].onNewData(lastTradePrice, volume)
 
-
-def onCandleComplete(symbol, data):
-    DBHelper.inertIntoTick(data[Constant.KEY_OPEN], data[Constant.KEY_HIGH], data[Constant.KEY_CLOSE],
-                           data[Constant.KEY_LOW], data[Constant.KEY_VOLUME], symbol, data[Constant.KEY_DATE])
-    # update(symbol, data)
-
-
-def createCandle(price, symbol, volume):
-    if symbol not in tempCandleData:
-        tempCandleData[symbol] = []
-    if len(tempCandleData[symbol]) == 0:
-        lastDataReceiveTime[symbol] = time.time()
-    tempCandleData[symbol].append(price)
-    if high.get(symbol, -1.0) < price:
-        high[symbol] = price
-
-    if low.get(symbol, 9999999.0) > price:
-        low[symbol] = price
-    timeelapsed = time.time() - lastDataReceiveTime[symbol]
-    # print("Time since last candle Createed "+str(timeelapsed) +
-    #       " last Cnadle Created "+str(lastDataReceiveTime[symbol])+"  "+str(len(tempCandleData[symbol])))
-    if timeelapsed > Constant.CANDLE_CRATION_TIME:
-        lastDataReceiveTime[symbol] = time.time()
-        candle = {}
-        candle[Constant.KEY_HIGH] = high[symbol]
-        candle[Constant.KEY_LOW] = low[symbol]
-        candle[Constant.KEY_CLOSE] = tempCandleData[symbol][len(
-            tempCandleData[symbol]) - 1]
-        candle[Constant.KEY_OPEN] = tempCandleData[symbol][0]
-        candle[Constant.KEY_DATE] = datetime.datetime.now()
-        candle[Constant.KEY_VOLUME] = volume
-        onCandleComplete(symbol, candle)
-        high[symbol] = -1
-        low[symbol] = 999999
-        tempCandleData[symbol].clear()
 
 
 def activateSymbol(symbol):

@@ -34,8 +34,8 @@ def initLocalFile(callback):
         # next(fileReader)
         for row in fileReader:
             print("Row ",str(i)," price ",row['price'])
-            if i == 421:
-                print(i)
+            # if i == 421:
+            #     print(i)
             i = i+1
             callback(float(row['price']), float(row['volume']),row['symbol'])
-
+    print("Done")

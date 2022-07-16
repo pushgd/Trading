@@ -5,7 +5,7 @@ SymbolDict = {}
 watchlist = []
 strategyDict={}
 
-localFile = False
+localFile = True
 
 
 def getNextGannLevel(n):
@@ -26,7 +26,7 @@ def isUpwardPattern(t):
 
 def getLowestValue(symbol):
     t = symbol.tickData[symbol.topIndex-1]
-    if(t.isPattern(Constant.MORNING_STAR) or t.isPattern(Constant.EVENING_STAR)):
+    if t.isPattern(Constant.MORNING_STAR) or t.isPattern(Constant.EVENING_STAR):
         l = symbol.tickData[symbol.topIndex-4:symbol.topIndex-1]
     else:
         l = symbol.tickData[symbol.topIndex-3:symbol.topIndex-1]
@@ -50,8 +50,15 @@ class Trade:
         self.tick = None
         self.strategy = None
         self.symbol = symbol
-        self.ID = time.time()
+        self.ID = str(time.time()*1000000)[-8:].replace('.','')
         self.strategyName = None
+        self.gain = 0
+
+    def serialize(self):
+       return  {'status': self.status, 'entryPrice': self.entryPrice, 'entryTime': self.entryTime,
+             'exitPrice': self.exitPrice, 'exitTime': self.exitTime, 'buyTrigger': self.buyTrigger,
+             'stopLoss': self.stopLoss, 'takeProfit': self.takeProfit, 'ID': self.ID, 'strategyName': self.strategyName,
+             'gain': self.gain}
 
 
 class Tick:

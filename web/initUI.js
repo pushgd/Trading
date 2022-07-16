@@ -21,7 +21,7 @@ async function initSymbols() {
     for (let i = 0; i < json.length; i++) {
         option = document.createElement('option');
         option.value = json[i];
-        option.innerHTML = json[i]
+        option.innerHTML = json[i];
         symbolSelect.appendChild(option)
     }
 }
@@ -108,7 +108,7 @@ async function addSymbolButtonAction() {
     }
     div = document.createElement('div')
     div.className = "symbolInfo";
-    div.id = "s_" + symbolSelect.value;
+    div.id = "s_" + symbolSelect.value.replace('-', '_').replace(' ', '_');
     div.innerHTML = `
       <div class="headerText" id="symbolName">Symbol: ${symbolSelect.value}</div>
             <div class="headerText gain" id="currentPrice">Current Price</div>

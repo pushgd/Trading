@@ -194,7 +194,8 @@ def checkPatterns(symbol):
 
 
 def checkDoji(symbol):
-    if(symbol.tickData[symbol.topIndex].info[Constant.KEY_BODY_LENGTH]/symbol.tickData[symbol.topIndex].info[Constant.KEY_LENGTH] < Constant.DOJI_RATIO):
+
+    if symbol.tickData[symbol.topIndex].info[Constant.KEY_LENGTH] > 0 and (symbol.tickData[symbol.topIndex].info[Constant.KEY_BODY_LENGTH]/symbol.tickData[symbol.topIndex].info[Constant.KEY_LENGTH] < Constant.DOJI_RATIO):
         return Constant.DOJI
     return False
 

@@ -2,7 +2,8 @@ import Common
 import Constant
 import time
 import datetime
-import  analyze
+import analyze
+
 
 class CandleCreator():
     def __init__(self, frequency, callback, localFrequency=Constant.LOCAL_CANDLE_FREQUENCY):
@@ -10,7 +11,7 @@ class CandleCreator():
         self.callback = callback
         self.low = 9999999
         self.high = -1
-        self.lastDataReceiveTime =  time.time()
+        self.lastDataReceiveTime = time.time()
         self.localTick = 0
         self.frequency = frequency
         self.localFrequency = localFrequency
@@ -38,22 +39,27 @@ class CandleCreator():
 
 
 class StrategyBaseClass:
-    def __init__(self, symbolCallBack,trade,candleFrequency = 3 * 60):
+    def __init__(self, symbolCallBack, trade, candleFrequency=3 * 60, params=None):
+        if params is None:
+            params = {}
         self.top = None
         self.tickData = []
         self.topIndex = -1
         self.candleCreator = CandleCreator(candleFrequency, self.onCandleComplete)
         self.symbolCallBack = symbolCallBack
         self.trade = trade
+        self.params = params
 
     def update(self, trade, lastTradedPrice):
         print("Update base class")
 
     def onCandleComplete(self, candle):
-        self.symbolCallBack(Constant.EVENT_CANDLE_CREATED,candle,self)
+        self.symbolCallBack(Constant.EVENT_CANDLE_CREATED, candle, self)
+        # print("Candle Created for symbol ", self.trade.symbol.symbol, " candle ", candle)
         self.addNewTick(candle)
-        self.candleCreated(candle)
-    def candleCreated(self,candle):
+        self.onNewCandleCreated(candle)
+
+    def onNewCandleCreated(self, candle):
         print("Need to Implement")
 
     def addNewTick(self, data):
@@ -71,48 +77,90 @@ class StrategyBaseClass:
                 self.top.info[Constant.KEY_GAIN] = 0
         analyze.update(self)
 
+
 class GannAnalysis(StrategyBaseClass):
 
     def update(self, trade, currentPrice, volume):
         self.candleCreator.createCandle(currentPrice, volume)
         if trade.status == Constant.TRADE_LOOKING_FOR_ENTRY:
             if currentPrice > trade.buyTrigger:
-                print("Buy ", trade.symbol.name, " on ", self.top.info[Constant.KEY_DATE], " for Price ",
-                      currentPrice)
+
                 trade.takeProfit = Common.getNextGannLevel(trade.buyTrigger + 3)
                 trade.stopLoss = Common.getPreviousGannLevel(trade.buyTrigger - 3)
                 trade.entryPrice = currentPrice
+                print("Buy ", trade.symbol.name, "on ", self.top.info[Constant.KEY_DATE], " for Price ",
+                      currentPrice)
                 print("TakeProfit ", trade.takeProfit, " Stoploss ", trade.stopLoss)
                 print("____________________________________________")
                 trade.status = Constant.TRADE_ENTERED
         elif trade.status == Constant.TRADE_ENTERED:
             if currentPrice > trade.takeProfit:
-                print("Profit Sell ", trade.symbol.name, " on ", self.top.info[Constant.KEY_DATE], " for price ",
+                print("Profit Sell ", trade.symbol.name, "on ", self.top.info[Constant.KEY_DATE], " for price ",
                       currentPrice, " with Profit ", (currentPrice - trade.entryPrice))
                 print("____________________________________________")
                 trade.exitPrice = currentPrice
+                trade.gain = (trade.entryPrice - currentPrice)
                 trade.status = Constant.TRADE_COMPLETED
-                self.symbolCallBack(Constant.EVENT_TRADE_COMPLETED,None,self)
+                self.symbolCallBack(Constant.EVENT_TRADE_COMPLETED, None, self)
             if currentPrice < trade.stopLoss:
-                print("Loss sell ", trade.symbol.name, " on ", self.top.info[Constant.KEY_DATE], " for price ",
+                print("Loss sell ", trade.symbol.name, "on ", self.top.info[Constant.KEY_DATE], " for price ",
                       currentPrice, " with loss ", (trade.entryPrice - currentPrice))
                 print("____________________________________________")
                 trade.exitPrice = currentPrice
+                trade.gain = (trade.entryPrice - currentPrice)
                 trade.status = Constant.TRADE_COMPLETED
                 self.symbolCallBack(Constant.EVENT_TRADE_COMPLETED, None, self)
 
-    def candleCreated(self, candle):
+    def onNewCandleCreated(self, candle):
         if self.trade.status == Constant.TRADE_NOT_STARTED:
             self.trade.buyTrigger = Common.getNextGannLevel(candle[Constant.KEY_CLOSE])
             self.trade.status = Constant.TRADE_LOOKING_FOR_ENTRY
-            print("Entering sell for ",self.trade.symbol.symbol)
-        print("Candle Created for symbol ",self.trade.symbol.symbol," candle ",candle)
+            print("Entering Trade for ", self.trade.symbol.symbol," ",self.top.info[Constant.KEY_DATE])
+        # print("Candle Created for symbol ",self.trade.symbol.symbol," candle ",candle)
 
 
 class MACrossover(StrategyBaseClass):
-    def update(self, trade, lastTradedPrice):
-        print("MAC update")
+    def update(self, trade, currentPrice, volume):
+        self.candleCreator.createCandle(currentPrice, volume)
+        if trade.status == Constant.TRADE_LOOKING_FOR_ENTRY:
+            if currentPrice > trade.buyTrigger:
+                trade.status = Constant.TRADE_ENTERED
+                print("MAC Buy ", trade.symbol.name, "on ", self.top.info[Constant.KEY_DATE], " for Price ",
+                      currentPrice)
+                print("TakeProfit ", trade.takeProfit, " Stoploss ", trade.stopLoss)
+                print("____________________________________________")
+        elif trade.status == Constant.TRADE_ENTERED:
+            if currentPrice > trade.takeProfit:
+                trade.status = Constant.TRADE_COMPLETED
+                print("Profit Sell ", trade.symbol.name, "on ", self.top.info[Constant.KEY_DATE], " for price ",
+                      currentPrice, " with Profit ", (currentPrice - trade.entryPrice))
+                print("____________________________________________")
+                trade.exitPrice = currentPrice
+                trade.gain = (trade.entryPrice - currentPrice)
+                trade.status = Constant.TRADE_COMPLETED
+                self.symbolCallBack(Constant.EVENT_TRADE_COMPLETED, None, self)
+            elif currentPrice < trade.stopLoss:
+                print("Loss sell ", trade.symbol.name, "on ", self.top.info[Constant.KEY_DATE], " for price ",
+                      currentPrice, " with loss ", (trade.entryPrice - currentPrice))
+                print("____________________________________________")
+                trade.exitPrice = currentPrice
+                trade.gain = (trade.entryPrice - currentPrice)
+                trade.status = Constant.TRADE_COMPLETED
+                self.symbolCallBack(Constant.EVENT_TRADE_COMPLETED, None, self)
 
+    def onNewCandleCreated(self, candle):
+        if self.trade.status == Constant.TRADE_NOT_STARTED:
+            if self.topIndex < 2:
+                return
+            last = self.tickData[self.trade.symbol.topIndex - 1]
+            if Common.isUpwardPattern(last) and self.top.info[Constant.KEY_CLOSE] > self.top.info[
+                Constant.KEY_MOVING_AVERAGE_SHORT_CLOSE] and last.info[Constant.KEY_HIGH] < last.info[
+                Constant.KEY_MOVING_AVERAGE_SHORT_CLOSE] and self.top.info[Constant.KEY_RSI] >= 55:
+                self.trade.status = Constant.TRADE_LOOKING_FOR_ENTRY
+                self.trade.buyTrigger = self.top.info[Constant.KEY_HIGH]
+                self.trade.stopLoss = Common.getLowestValue(self)
+                self.trade.takeProfit = self.trade.buyTrigger + abs(self.trade.buyTrigger - self.trade.stopLoss) * self.trade.symbol.riskFactor
+                print("Entering Trade for ", self.trade.symbol.symbol, " ", self.top.info[Constant.KEY_DATE])
 
 def init():
     # Common.strategyDict[Constant.STRATEGY_GANN_ANALYSIS] = GannAnalysis()

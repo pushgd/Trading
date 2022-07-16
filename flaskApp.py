@@ -86,12 +86,12 @@ def getCandle(symbol,index):
 
 @app.route("/getTrades/<symbol>", methods=['GET'])
 def getTrade(symbol):
-    replay = Common.SymbolDict[symbol].tradeList[0].__dict__.copy()
-    replay.pop("symbol")
-    replay.pop("strategy")
-    replay = jsonify(replay)
-    replay.headers.add('Access-Control-Allow-Origin', '*')
-    return replay
+    return Common.SymbolDict[symbol].tradeList
+
+@app.route("/exitTrades/<symbol>/<ID>", methods=['POST'])
+def exitTrade(symbol,ID):
+    Common.SymbolDict[symbol].exitTrade(ID)
+
 
 @app.route("/activateSymbol/<symbol>", methods=['POST'])
 def activateSymbol(symbol):
