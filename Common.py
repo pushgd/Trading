@@ -5,7 +5,7 @@ SymbolDict = {}
 watchlist = []
 strategyDict={}
 
-localFile = True
+localFile = False
 
 
 def getNextGannLevel(n):
