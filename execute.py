@@ -8,6 +8,7 @@ import datetime
 import DBHelper
 import sys, itertools
 import csv
+import logging
 
 spinner = itertools.cycle(['-', '/', '|', '\\'])
 lastStrategyCheckTime = 0
@@ -27,20 +28,21 @@ def init():
     with open('instruments.csv') as csvfile:
         fileReader = csv.DictReader(csvfile)
         for row in fileReader:
+            # if (row['active'] == '1' and row['exchange'] == 'MCX' and row['assettype'] == 'FUTCOM'):
             if (row['active'] == '1' and row['exchange'] == 'NSE' and row['assettype'] == 'INDEX')\
                 or (row['active'] == '1' and row['exchange'] == 'NSE' and row['series'] == 'EQ'):
-                id = row['exchangetoken']
-                name = row['symbolname']
+                exchangeToken = row['exchangetoken']
+                symbolname = row['symbolname']
+                if symbolname == 'Nifty Bank':
+                    symbolname = 'BANKNIFTY'
+
+                tradingsymbol = row['tradingsymbol']
                 symbolsIDList.append(id)
-                symbolsList.append(name)
-                symbolMapping[id] = name
-    print(symbolMapping)
-    for s in symbolsList:
-        Common.SymbolDict[s] = Symbol.Symbol(s, s, symbolsIDList[symbolsList.index(s)])
-        Common.SymbolDict[s].setStrategy(Constant.STRATEGY_GANN_ANALYSIS)
-        # Common.SymbolDict[s].setStrategy(Constant.STRATEGY_GANN_ANALYSIS)
-    # Common.SymbolDict['2885_NSE'] = Symbol.Symbol('2885_NSE', 'RELINS','RELINS')
-    # Common.SymbolDict['2643_NSE'] = Symbol.Symbol('2643_NSE', 'Phizer','PHIZER')
+                # symbolsList.append(name)
+                # symbolMapping[id] = name
+                Common.SymbolDict[exchangeToken] = Symbol.Symbol(symbolname, tradingsymbol, exchangeToken)
+                Common.SymbolDict[exchangeToken].setStrategy(Constant.STRATEGY_GANN_ANALYSIS)
+    print(Common.SymbolDict.keys())
     print("Execute Init Done")
 
 
@@ -72,11 +74,14 @@ def onNewData(message):
             lastTradePrice = float(d['response']['data']['a9'])
             symbol = d['response']['data']['z3']
             volume = float(d['response']['data']['c6'])
-
-            if Common.SymbolDict[symbolMapping[symbol]].isActive:
-                Common.SymbolDict[symbolMapping[symbol]].onNewData(lastTradePrice, volume)
-        except:
-            print("error after parsing")
+            Common.LogDataReceived(str(lastTradePrice) + "," + str(volume) + "," + symbol)
+        except Exception:
+            print("Error Parsing")
+            return
+        # logging.dataReceived(str(lastTradePrice)+","+str(volume)+","+symbolMapping[symbol])
+        if Common.SymbolDict[symbol].isActive:
+            Common.SymbolDict[symbol].onNewData(lastTradePrice, volume)
+            DBHelper.addTradePrice(symbol,lastTradePrice,volume)
 
 
 def onNewDataLocal(lastTradePrice, volume, symbol):

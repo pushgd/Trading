@@ -1,3 +1,4 @@
+import API
 import Common
 import Constant
 import analyze
@@ -9,11 +10,11 @@ from strategy import GannAnalysis, MACrossover
 
 
 class Symbol:
-    def __init__(self, name, symbol, scripCode, riskfactor=1):
+    def __init__(self, symbolName, tradingSymbol, exchangeToken, riskfactor=1):
         self.top = None
-        self.name = name
-        self.symbol = symbol
-        self.scripCode = scripCode
+        self.symbolName = symbolName
+        self.tradingSymbol = tradingSymbol
+        self.exchangeToken = exchangeToken
         self.tickData = []
         self.riskFactor = riskfactor
         self.topIndex = -1
@@ -29,6 +30,7 @@ class Symbol:
         self.parameters = {}
         self.isActive = True
         self.localTick = 0
+        self.quantity = 1
 
     def update(self, data):
         # self.addNewTick(data)
@@ -41,7 +43,7 @@ class Symbol:
         self.isActive = False
 
     def exportCSV(self, name, *columns):
-        name = name + '_' + self.symbol + '.csv'
+        name = name + '_' + self.symbolName + '.csv'
         with open(name, 'w', newline='') as csvfile:
             csvwriter = csv.writer(csvfile)
             csvwriter.writerow(columns)
@@ -74,7 +76,8 @@ class Symbol:
 
     def onCandleComplete(self, data):
         DBHelper.inertIntoTick(data[Constant.KEY_OPEN], data[Constant.KEY_HIGH], data[Constant.KEY_CLOSE],
-                               data[Constant.KEY_LOW], data[Constant.KEY_VOLUME], self.symbol, data[Constant.KEY_DATE])
+                               data[Constant.KEY_LOW], data[Constant.KEY_VOLUME], self.symbolName,
+                               data[Constant.KEY_DATE])
         # self.addNewTick(data)
 
     def OnStrategyEvent(self, event, data, strategy):
@@ -88,3 +91,13 @@ class Symbol:
             if t.ID == ID:
                 t.status = Constant.TRADE_FORCE_EXIT
                 print("Exiting trade ", t.ID, " for symbol ", self.name)
+
+    def buy(self, tradingSymbol, exchangeToken, exchange, orderType, limitPrice):
+        r = API.placeOrder(tradingSymbol, exchange, orderType, self.quantity, exchangeToken, limitPrice)
+        print("Purchase Completed")
+        print(r)
+
+    def sell(self, tradingSymbol, exchangeToken, exchange, orderType, limitPrice):
+        r = API.sellPosition(tradingSymbol, exchange, orderType, self.quantity, exchangeToken, limitPrice)
+        print("sell Completed")
+        print(r)

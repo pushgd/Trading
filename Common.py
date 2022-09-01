@@ -1,11 +1,20 @@
 import Constant
 import math
 import time
+import datetime
+import csv
 SymbolDict = {}
 watchlist = []
 strategyDict={}
 
 localFile = False
+
+def LogDataReceived(msg):
+    Constant.LOGGER.dataReceived(msg)
+
+def LogAction(msg):
+    Constant.LOGGER.action(msg)
+    print(str(datetime.datetime.now())+" "+msg)
 
 
 def getNextGannLevel(n):
@@ -13,6 +22,42 @@ def getNextGannLevel(n):
 
 def getPreviousGannLevel(n):
     return math.pow(math.floor(math.sqrt(n)*4)/4,2)
+
+def getNextStrikePrice(price):
+    return int((price/100))*100+100
+def getPreviousStrikePrice(price):
+    return int((price/100))*100-100
+
+def getSymbolExchangeCode(symbol,strikePrice,option):
+    # strikePrice = str(int((price/100))*100+100)
+
+    daysTOAdd = 0
+    match datetime.datetime.now().weekday():
+        case 0:
+            daysTOAdd = 3
+        case 1:
+            daysTOAdd = 2
+        case 2:
+            daysTOAdd = 1
+        case 3:
+            daysTOAdd = 7
+        case 4:
+            daysTOAdd = 6
+    expirayDate =datetime.datetime.now()+ datetime.timedelta(days = daysTOAdd) # 4 for friday
+    print(f"strike price {strikePrice} symbol {symbol} option {option} expiry {expirayDate}")
+    # expirayDate = datetime.datetime.strptime(str(expirayDate.day)+"-"+str(expirayDate.month)+"-"+str(expirayDate.year), "%d-%m-%Y")
+    with open('instruments.csv') as csvfile:
+        fileReader = csv.DictReader(csvfile)
+        for row in fileReader:
+            if row['assettype'] == "OPTIDX":
+                try:
+                    d =datetime.datetime.strptime(row['expiry'], "%d-%b-%y")
+                    # if row['symbolname'] == symbol and d.date() == expirayDate.date() and int(row['strikeprice']) == strikePrice:
+                    #     print(f" strike price {row['strikeprice']}  type {row['optiontype']}")
+                    if row['symbolname'] == symbol and int(row['strikeprice']) == strikePrice and row['optiontype'] == option and  d.date() == expirayDate.date():
+                        return {'exchangetoken':row['exchangetoken'],'tradingsymbol':row['tradingsymbol']}
+                except:
+                    pass
 
 
 def isUpwardPattern(t):
@@ -37,6 +82,23 @@ def getLowestValue(symbol):
     return min
 
 
+def getSymbolByExchangeToken(exchangeToken):
+    for s in SymbolDict.keys():
+        if SymbolDict[s].exchangeToken == exchangeToken:
+            return SymbolDict[s]
+
+def getSymbolBySymbolName(symbolName):
+    for s in SymbolDict.keys():
+        if SymbolDict[s].symbolName == symbolName:
+            return SymbolDict[s]
+
+def getSymbolByTradingSymbol(tradingSymbol):
+    for s in SymbolDict.keys():
+        if SymbolDict[s].tradingSymbol == tradingSymbol:
+            return SymbolDict[s]
+
+
+
 class Trade:
     def __init__(self, symbol):
         self.status = Constant.TRADE_NOT_STARTED
@@ -44,19 +106,22 @@ class Trade:
         self.entryTime = 0
         self.exitPrice = 0
         self.exitTime = 0
-        self.buyTrigger = -1
+        self.buyTriggerCall = -1
+        self.buyTriggerPut = -1
         self.stopLoss = 0
         self.takeProfit = 0
         self.tick = None
         self.strategy = None
         self.symbol = symbol
-        self.ID = str(time.time()*1000000)[-8:].replace('.','')
+        self.ID = str(time.time())[-10:].replace(".","")
+        time.sleep(0.000001)
         self.strategyName = None
         self.gain = 0
+        self.timeOfEntry = 0
 
     def serialize(self):
        return  {'status': self.status, 'entryPrice': self.entryPrice, 'entryTime': self.entryTime,
-             'exitPrice': self.exitPrice, 'exitTime': self.exitTime, 'buyTrigger': self.buyTrigger,
+             'exitPrice': self.exitPrice, 'exitTime': self.exitTime, 'buyTriggerCall': self.buyTriggerCall, 'buyTriggerPut': self.buyTriggerPut,
              'stopLoss': self.stopLoss, 'takeProfit': self.takeProfit, 'ID': self.ID, 'strategyName': self.strategyName,
              'gain': self.gain}
 

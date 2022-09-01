@@ -4,13 +4,13 @@ import Common
 import csv
 APIKey = "QDFbQZIsst9A6A"
 AppSecret = "62eM4#YaL+kX5!Rt"
-reqId = "323631b6e4b02fd1"
+reqId = "333762b8b44c8846"
 accid = "45055736"
 userID = "45055736"
 
-
+client = None
+f =None
 def init():
-
     global client
     client = EdelweissAPIConnect(
         APIKey, AppSecret, reqId, True)
@@ -22,7 +22,8 @@ def initLiveData(callback):
     print('waiting for Data')
     s = []
     for key in Common.SymbolDict.keys():
-        s.append(Common.SymbolDict[key].scripCode)
+        s.append(Common.SymbolDict[key].exchangeToken)
+    global f
     f = Feed(accid, userID,"python-settings.ini")
     f.subscribe(s, callback)
 
@@ -39,3 +40,13 @@ def initLocalFile(callback):
             i = i+1
             callback(float(row['price']), float(row['volume']),row['symbol'])
     print("Done")
+
+def placeOrder(TradingSymbol,Exchange, OrderType, Quantity, StreamingSymbol, LimitPrice, Duration = "DAY",Disclosed_Quantity="0", TriggerPrice="0", ProductCode="CNC"):
+    response =  client.PlaceTrade(TradingSymbol, Exchange, "BUY", Duration, OrderType, Quantity,
+                   StreamingSymbol, LimitPrice)
+    return response
+
+def sellPosition(TradingSymbol,Exchange, OrderType, Quantity, StreamingSymbol, LimitPrice, Duration = "DAY",Disclosed_Quantity="0", TriggerPrice="0", ProductCode="CNC"):
+    response =  client.PlaceTrade(TradingSymbol, Exchange, "SELL", Duration, OrderType, Quantity,
+                   StreamingSymbol, LimitPrice)
+    return response

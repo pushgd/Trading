@@ -18,9 +18,11 @@ body {
 .textBlock {
     margin-top: 0;
     display: flex;
+    flex-direction: column;
     border: 1px solid;
     padding: 5px;
     align-self: center;
+    width: 100%;
 }
 
 .headerText {
@@ -38,9 +40,15 @@ body {
 .tradeInfo {
     display: flex;
     align-self: center;
-    width: 100%;
+    width: 95%;
     align-content: center;
     justify-content: center;
+    flex-grow: 0;
+}
+
+.tradeList {
+    display: flex;
+    flex-direction: column;
 }
 
 .symbolInfo {
@@ -51,7 +59,6 @@ body {
     flex-direction: column;
     align-self: center;
     width: 100%;
-
     padding: 2px;
 }
 

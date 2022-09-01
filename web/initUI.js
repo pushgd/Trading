@@ -110,54 +110,15 @@ async function addSymbolButtonAction() {
     div.className = "symbolInfo";
     div.id = "s_" + symbolSelect.value.replace('-', '_').replace(' ', '_');
     div.innerHTML = `
-      <div class="headerText" id="symbolName">Symbol: ${symbolSelect.value}</div>
+      <div class="headerText" id="symbolName" style = " font-size: x-large">${symbolSelect.value}</div>
+      <div style = "display : flex; justify-content: center;;">
             <div class="headerText gain" id="currentPrice">Current Price</div>
                <div class="headerText" id="riskFactor">Risk Factor: ${riskFactor.value}</div>
-          
-            <div class="headerText">Trades</div>
+            </div>
+        </div>
+        </div>
             <div class='tradeList'>
-                <div class="tradeInfo">
-                    <div id="ID" class="textBlock">
-                        <div id="title">ID:</div>
-                        <div id="value">1234</div>
-                    </div>
-                    <div id="strategy" class="textBlock">
-                        <div id="title">Strategy:</div>
-                        <div id="value">${strategy.value}</div>
-                    </div>
-                    <div id="status" class="textBlock">
-                        <div id="title">Status:</div>
-                        <div id="value">1234</div>
-                    </div>
-                    <div id="buyTrigger" class="textBlock">
-                        <div id="title">Buy Trigger:</div>
-                        <div id="value">1234</div>
-                    </div>
-                     <div id="entryPrice" class="textBlock">
-                        <div id="title">Entry Price:</div>
-                        <div id="value">1234</div>
-                    </div>
-                    <div id="stoploss" class="textBlock">
-                        <div id="title">Stoploss:</div>
-                        <div id="value">1234</div>
-                    </div>
-                    <div id="takeProfit" class="textBlock">
-                        <div id="title">TakeProfit:</div>
-                        <div id="value">1234</div>
-                    </div>
-                    <div id="exit" class="textBlock">
-                        <div id="title">Exit:</div>
-                        <div id="value">1234</div>
-                    </div>
-                    <div id="gain" class="textBlock">
-                        <div id="title">Gain:</div>
-                        <div id="value">1234</div>
-                    </div>
-                    <div id="ForceExit" class="exitButton button">
-                        ForceExit
-                    </div>
-
-                </div>
+                
             </div>
     `;
     container.appendChild(div);

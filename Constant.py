@@ -1,6 +1,6 @@
 # tick date
-from ast import Constant
-
+import logging
+import datetime
 
 DATE = 0
 OPEN = 1
@@ -99,6 +99,12 @@ TRADE_NOT_STARTED = 1
 TRADE_ENTERED = 2
 TRADE_COMPLETED = 3
 TRADE_FORCE_EXIT = 4
+TRADE_TIMED_OUT = 5
+
+TRADE_TYPE_PUT = "PE"
+TRADE_TYPE_CALL = "CE"
+
+TRADE_TIMEOUT_TIME = 1 * 60 * 60
 
 KEY_GANN_REFERENCE = 'GANN_REFERENCE'
 
@@ -110,3 +116,47 @@ LOCAL_CANDLE_FREQUENCY = 3
 
 EVENT_CANDLE_CREATED = 0
 EVENT_TRADE_COMPLETED = 1
+EVENT_TRADE_TIMEOUT = 2
+
+
+LOGGING_LEVEL_VERBOSE = 1
+LOGGING_LEVEL_NEW_DATA_RECEIVED = 2
+LOGGING_LEVEL_ACTION = 3
+
+LOGGER = logging.getLogger("AlgoTrade")
+def verbose(msg, *args, **kwargs):
+    if LOGGER.isEnabledFor(LOGGING_LEVEL_VERBOSE):
+        LOGGER.log(LOGGING_LEVEL_VERBOSE,msg)
+
+
+def dataReceived(msg, *args, **kwargs):
+    if LOGGER.isEnabledFor(LOGGING_LEVEL_NEW_DATA_RECEIVED):
+        LOGGER.log(LOGGING_LEVEL_NEW_DATA_RECEIVED, msg)
+
+def action(msg, *args, **kwargs):
+    if LOGGER.isEnabledFor(LOGGING_LEVEL_ACTION):
+        LOGGER.log(LOGGING_LEVEL_ACTION, msg)
+
+
+
+
+logging.addLevelName(LOGGING_LEVEL_VERBOSE,"VERBOSE")
+LOGGER.verbose = verbose
+
+
+logging.addLevelName(LOGGING_LEVEL_NEW_DATA_RECEIVED,"DATA_RECEIVED")
+LOGGER.dataReceived = dataReceived
+
+logging.addLevelName(LOGGING_LEVEL_ACTION,"ACTION")
+LOGGER.action = action
+
+
+
+f = logging.Formatter(fmt = '%(asctime)s,%(levelname)s,%(message)s')
+fileName ="logs/Log"+str(datetime.datetime.now().day)+str(datetime.datetime.now().month)+str(datetime.datetime.now().year)+".csv"
+
+fh= logging.FileHandler(fileName)
+fh.setLevel(LOGGING_LEVEL_VERBOSE)
+fh.setFormatter(f)
+LOGGER.addHandler(fh)
+LOGGER.setLevel(LOGGING_LEVEL_VERBOSE)
