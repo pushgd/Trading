@@ -7,6 +7,8 @@ import time
 import datetime
 import DBHelper
 from strategy import GannAnalysis, MACrossover
+import playsound
+# playsound.playsound("purchase.mp3")
 
 
 class Symbol:
@@ -92,12 +94,31 @@ class Symbol:
                 t.status = Constant.TRADE_FORCE_EXIT
                 print("Exiting trade ", t.ID, " for symbol ", self.name)
 
-    def buy(self, tradingSymbol, exchangeToken, exchange, orderType, limitPrice):
-        r = API.placeOrder(tradingSymbol, exchange, orderType, self.quantity, exchangeToken, limitPrice)
-        print("Purchase Completed")
-        print(r)
+    def buy(self, tradingSymbol, exchangeToken, exchange, orderType, quantity, limitPrice=0):
+        try:
+            r = API.placeOrder(tradingSymbol, exchange, orderType,
+                               quantity, exchangeToken, limitPrice)
+            print("Purchase Completed")
+            Common.LogAction(
+                f"PurchaseCompleted,{tradingSymbol},{exchangeToken},{exchange},{orderType},{limitPrice},{r}")
+        except:
+            print("Error Buying")
+        try:
+            playsound.playsound("purchase.mp3")
+        except Exception as e:
+            print("Error playing sound ", str(e))
 
-    def sell(self, tradingSymbol, exchangeToken, exchange, orderType, limitPrice):
-        r = API.sellPosition(tradingSymbol, exchange, orderType, self.quantity, exchangeToken, limitPrice)
-        print("sell Completed")
-        print(r)
+    def sell(self, tradingSymbol, exchangeToken, exchange, orderType, quantity, limitPrice=0):
+        try:
+            r = API.sellPosition(tradingSymbol, exchange, orderType,
+                                 quantity, exchangeToken, limitPrice)
+            print("sell Completed")
+            Common.LogAction(
+                f"SellCompleted,{tradingSymbol},{exchangeToken},{exchange},{orderType},{limitPrice},{r}")
+            print(r)
+        except Exception as e:
+            print("Error selling ", str(e))
+        try:
+            playsound.playsound("sell.mp3")
+        except Exception as e:
+            print("Error playing sound ", str(e))

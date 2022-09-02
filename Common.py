@@ -5,12 +5,14 @@ import datetime
 import csv
 SymbolDict = {}
 watchlist = []
-strategyDict={}
+strategyDict = {}
 
 localFile = False
 
+
 def LogDataReceived(msg):
     Constant.LOGGER.dataReceived(msg)
+
 
 def LogAction(msg):
     Constant.LOGGER.action(msg)
@@ -18,17 +20,22 @@ def LogAction(msg):
 
 
 def getNextGannLevel(n):
-    return math.pow(math.ceil(math.sqrt(n)*4)/4,2)
+    return math.pow(math.ceil(math.sqrt(n)*4)/4, 2)
+
 
 def getPreviousGannLevel(n):
-    return math.pow(math.floor(math.sqrt(n)*4)/4,2)
+    return math.pow(math.floor(math.sqrt(n)*4)/4, 2)
 
-def getNextStrikePrice(price):
-    return int((price/100))*100+100
-def getPreviousStrikePrice(price):
-    return int((price/100))*100-100
 
-def getSymbolExchangeCode(symbol,strikePrice,option):
+def getNextStrikePrice(price, stepsize=100):
+    return int((price/stepsize))*stepsize+stepsize
+
+
+def getPreviousStrikePrice(price, stepsize=100):
+    return int((price/stepsize))*stepsize
+
+
+def getSymbolExchangeCode(symbol, strikePrice, option):
     # strikePrice = str(int((price/100))*100+100)
 
     daysTOAdd = 0
@@ -43,19 +50,21 @@ def getSymbolExchangeCode(symbol,strikePrice,option):
             daysTOAdd = 7
         case 4:
             daysTOAdd = 6
-    expirayDate =datetime.datetime.now()+ datetime.timedelta(days = daysTOAdd) # 4 for friday
-    print(f"strike price {strikePrice} symbol {symbol} option {option} expiry {expirayDate}")
+    expirayDate = datetime.datetime.now(
+    ) + datetime.timedelta(days=daysTOAdd)  # 4 for friday
+    print(
+        f"strike price {strikePrice} symbol {symbol} option {option} expiry {expirayDate}")
     # expirayDate = datetime.datetime.strptime(str(expirayDate.day)+"-"+str(expirayDate.month)+"-"+str(expirayDate.year), "%d-%m-%Y")
     with open('instruments.csv') as csvfile:
         fileReader = csv.DictReader(csvfile)
         for row in fileReader:
-            if row['assettype'] == "OPTIDX":
+            if row['assettype'] == "OPTIDX" or row['assettype'] == "OPTSTK":
                 try:
-                    d =datetime.datetime.strptime(row['expiry'], "%d-%b-%y")
+                    d = datetime.datetime.strptime(row['expiry'], "%d-%b-%y")
                     # if row['symbolname'] == symbol and d.date() == expirayDate.date() and int(row['strikeprice']) == strikePrice:
                     #     print(f" strike price {row['strikeprice']}  type {row['optiontype']}")
-                    if row['symbolname'] == symbol and int(row['strikeprice']) == strikePrice and row['optiontype'] == option and  d.date() == expirayDate.date():
-                        return {'exchangetoken':row['exchangetoken'],'tradingsymbol':row['tradingsymbol']}
+                    if row['symbolname'] == symbol and int(row['strikeprice']) == strikePrice and row['optiontype'] == option and d.date() == expirayDate.date():
+                        return {'exchangetoken': row['exchangetoken'], 'tradingsymbol': row['tradingsymbol'], 'lotsize': row['lotsize']}
                 except:
                     pass
 
@@ -87,16 +96,17 @@ def getSymbolByExchangeToken(exchangeToken):
         if SymbolDict[s].exchangeToken == exchangeToken:
             return SymbolDict[s]
 
+
 def getSymbolBySymbolName(symbolName):
     for s in SymbolDict.keys():
         if SymbolDict[s].symbolName == symbolName:
             return SymbolDict[s]
 
+
 def getSymbolByTradingSymbol(tradingSymbol):
     for s in SymbolDict.keys():
         if SymbolDict[s].tradingSymbol == tradingSymbol:
             return SymbolDict[s]
-
 
 
 class Trade:
@@ -113,17 +123,17 @@ class Trade:
         self.tick = None
         self.strategy = None
         self.symbol = symbol
-        self.ID = str(time.time())[-10:].replace(".","")
+        self.ID = str(time.time())[-10:].replace(".", "")
         time.sleep(0.000001)
         self.strategyName = None
         self.gain = 0
         self.timeOfEntry = 0
 
     def serialize(self):
-       return  {'status': self.status, 'entryPrice': self.entryPrice, 'entryTime': self.entryTime,
-             'exitPrice': self.exitPrice, 'exitTime': self.exitTime, 'buyTriggerCall': self.buyTriggerCall, 'buyTriggerPut': self.buyTriggerPut,
-             'stopLoss': self.stopLoss, 'takeProfit': self.takeProfit, 'ID': self.ID, 'strategyName': self.strategyName,
-             'gain': self.gain}
+        return {'status': self.status, 'entryPrice': self.entryPrice, 'entryTime': self.entryTime,
+                'exitPrice': self.exitPrice, 'exitTime': self.exitTime, 'buyTriggerCall': self.buyTriggerCall, 'buyTriggerPut': self.buyTriggerPut,
+                'stopLoss': self.stopLoss, 'takeProfit': self.takeProfit, 'ID': self.ID, 'strategyName': self.strategyName,
+                'gain': self.gain}
 
 
 class Tick:

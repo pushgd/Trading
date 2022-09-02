@@ -12,11 +12,13 @@ import API
 import DBHelper
 import flaskApp
 
+
 def init():
-    # API.init()
+    API.init()
     strategy.init()
     DBHelper.init()
     execute.init()
+
 
 def fetchAndAnalyseDataForEquityAndIndex():
     print("Fetch Started")
@@ -26,13 +28,16 @@ def fetchAndAnalyseDataForEquityAndIndex():
     else:
         API.initLiveData(execute.onNewData)
     exit()
+
+
 def subsribeOptions():
     print("Subscribing for Options")
     time.sleep(10*60)
 
 
-
 print("start")
+
+
 def main():
     try:
         print("_______________________________________________")
@@ -54,6 +59,7 @@ def main():
     while 1:
         time.sleep(1)
 
+
 print(__name__)
-if  __name__ == "__main__":
+if __name__ == "__main__":
     main()

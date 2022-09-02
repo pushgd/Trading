@@ -104,7 +104,7 @@ TRADE_TIMED_OUT = 5
 TRADE_TYPE_PUT = "PE"
 TRADE_TYPE_CALL = "CE"
 
-TRADE_TIMEOUT_TIME = 1 * 60 * 60
+TRADE_TIMEOUT_TIME = 100 * 60 * 60
 
 KEY_GANN_REFERENCE = 'GANN_REFERENCE'
 
@@ -124,38 +124,39 @@ LOGGING_LEVEL_NEW_DATA_RECEIVED = 2
 LOGGING_LEVEL_ACTION = 3
 
 LOGGER = logging.getLogger("AlgoTrade")
+
+
 def verbose(msg, *args, **kwargs):
     if LOGGER.isEnabledFor(LOGGING_LEVEL_VERBOSE):
-        LOGGER.log(LOGGING_LEVEL_VERBOSE,msg)
+        LOGGER.log(LOGGING_LEVEL_VERBOSE, msg)
 
 
 def dataReceived(msg, *args, **kwargs):
     if LOGGER.isEnabledFor(LOGGING_LEVEL_NEW_DATA_RECEIVED):
         LOGGER.log(LOGGING_LEVEL_NEW_DATA_RECEIVED, msg)
 
+
 def action(msg, *args, **kwargs):
     if LOGGER.isEnabledFor(LOGGING_LEVEL_ACTION):
         LOGGER.log(LOGGING_LEVEL_ACTION, msg)
 
 
-
-
-logging.addLevelName(LOGGING_LEVEL_VERBOSE,"VERBOSE")
+logging.addLevelName(LOGGING_LEVEL_VERBOSE, "VERBOSE")
 LOGGER.verbose = verbose
 
 
-logging.addLevelName(LOGGING_LEVEL_NEW_DATA_RECEIVED,"DATA_RECEIVED")
+logging.addLevelName(LOGGING_LEVEL_NEW_DATA_RECEIVED, "DATA_RECEIVED")
 LOGGER.dataReceived = dataReceived
 
-logging.addLevelName(LOGGING_LEVEL_ACTION,"ACTION")
+logging.addLevelName(LOGGING_LEVEL_ACTION, "ACTION")
 LOGGER.action = action
 
 
+f = logging.Formatter(fmt='%(asctime)s,%(levelname)s,%(message)s')
+fileName = "logs/Log"+str(datetime.datetime.now().day)+str(
+    datetime.datetime.now().month)+str(datetime.datetime.now().year)+".csv"
 
-f = logging.Formatter(fmt = '%(asctime)s,%(levelname)s,%(message)s')
-fileName ="logs/Log"+str(datetime.datetime.now().day)+str(datetime.datetime.now().month)+str(datetime.datetime.now().year)+".csv"
-
-fh= logging.FileHandler(fileName)
+fh = logging.FileHandler(fileName)
 fh.setLevel(LOGGING_LEVEL_VERBOSE)
 fh.setFormatter(f)
 LOGGER.addHandler(fh)
