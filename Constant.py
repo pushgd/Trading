@@ -2,6 +2,22 @@
 import logging
 import datetime
 
+EXPIRY_DATES =[
+    datetime.date(2022,1,29),
+    datetime.date(2022,1,29),
+    datetime.date(2022,2,15),
+    datetime.date(2022,3,29),
+    datetime.date(2022,4,29),
+    datetime.date(2022,5,29),
+    datetime.date(2022,6,29),
+    datetime.date(2022,7,29),
+    datetime.date(2022,8,29),
+    datetime.date(2022,9,29),
+    datetime.date(2022,10,27),
+    datetime.date(2022,11,24),
+    datetime.date(2022,12,29)
+]
+
 DATE = 0
 OPEN = 1
 HIGH = 2
@@ -13,6 +29,11 @@ TYPE = 7
 STATUS = 8
 DOJI_RATIO = 0.25
 MEAN_RATIO = 0.05
+
+
+
+
+
 
 # candle type
 BULL = 'Bull'
@@ -33,12 +54,12 @@ STRATEGY_MA_CROSSOVER_UP = "MACrossoverup"
 STRATEGY_GANN_ANALYSIS = "GannAnalysis"
 
 # indicator parameters
-MOVING_AVERAGE_SHORT_WINDOW = 20
-MOVING_AVERAGE_MEDIUM_WINDOW = 50
+MOVING_AVERAGE_SHORT_WINDOW = 21
+MOVING_AVERAGE_MEDIUM_WINDOW = 51
 MOVING_AVERAGE_LONG_WINDOW = 200
 EXPONENTIAL_AVERAGE_WINDOW = 20
 
-RSI_WINDOW = 14
+RSI_WINDOW = 9
 
 
 # trade parameters
@@ -94,12 +115,15 @@ KEY_CUMMULATIVE_VWAP = 'VWAP'
 KEY_PATTERN = 'pattern'
 KEY_STRATEGY = 'Strategy'
 
+KEY_TICK_DATA = 'tickData'
+
 TRADE_LOOKING_FOR_ENTRY = 0
 TRADE_NOT_STARTED = 1
 TRADE_ENTERED = 2
 TRADE_COMPLETED = 3
 TRADE_FORCE_EXIT = 4
 TRADE_TIMED_OUT = 5
+TRADE_LOOKING_FOR_EXIT = 6
 
 TRADE_TYPE_PUT = "PE"
 TRADE_TYPE_CALL = "CE"
@@ -112,12 +136,13 @@ KEY_CURRENT_PRICE = 'CURRENT_PRICE'
 KEY_SYMBOL = 'CURRENT_SYMBOL'
 
 
-LOCAL_CANDLE_FREQUENCY = 3
+LOCAL_CANDLE_FREQUENCY = 999999999999999
 
 EVENT_CANDLE_CREATED = 0
 EVENT_TRADE_COMPLETED = 1
 EVENT_TRADE_TIMEOUT = 2
 
+EXIT_TIME = datetime.datetime.now().replace(hour=14,minute=45)
 
 LOGGING_LEVEL_VERBOSE = 1
 LOGGING_LEVEL_NEW_DATA_RECEIVED = 2

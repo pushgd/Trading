@@ -1,10 +1,13 @@
 import sqlite3
 import datetime
 
-
+conn = None
+cursor = None
 def inertIntoTick(open, high, close, low, volume, symbol, date):
     s = 'Insert INTO Tick (OPEN,HIGH,CLOSE,LOW,VOLUME,SYMBOL,DATE) Values('+str(open)+','+str(high)+','+str(close)+','+str(low) +\
         ','+str(volume)+',\''+symbol+'\',\''+str(date)+'\')'
+    if conn ==None or cursor == None:
+        init()
     cursor.execute(s)
     conn.commit()
 

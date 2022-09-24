@@ -23,11 +23,27 @@ def init():
 def fetchAndAnalyseDataForEquityAndIndex():
     print("Fetch Started")
     init()
-    if Common.localFile:
+    if Common.simulate:
         API.initLocalFile(execute.onNewDataLocal)
     else:
+        waitSomeTime()
         API.initLiveData(execute.onNewData)
     exit()
+
+
+def waitSomeTime():
+    t = datetime.datetime.now()
+    if t.minute % 15 != 0:
+        t = t + datetime.timedelta(minutes=(15 - t.minute % 15))
+    t = t.replace(second=0, microsecond=0)
+    startTime = t
+    timeToWait = startTime - datetime.datetime.now()
+    print(f"wait for {timeToWait.seconds}  seconds")
+    print(f"start time set to {startTime}")
+
+    time.sleep(timeToWait.seconds)
+    print(f"continue run {datetime.datetime.now()}")
+
 
 
 def subsribeOptions():
@@ -54,7 +70,6 @@ def main():
     except Exception as e:
         print("Can not start flask")
         print(e)
-
     print("All Threads started")
     while 1:
         time.sleep(1)

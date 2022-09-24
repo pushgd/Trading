@@ -7,7 +7,7 @@ SymbolDict = {}
 watchlist = []
 strategyDict = {}
 
-localFile = False
+simulate = True
 
 
 def LogDataReceived(msg):
@@ -17,6 +17,10 @@ def LogDataReceived(msg):
 def LogAction(msg):
     Constant.LOGGER.action(msg)
     print(str(datetime.datetime.now())+" "+msg)
+
+
+def getTillDate():
+    return datetime.datetime.now()
 
 
 def getNextGannLevel(n):
@@ -34,27 +38,43 @@ def getNextStrikePrice(price, stepsize=100):
 def getPreviousStrikePrice(price, stepsize=100):
     return int((price/stepsize))*stepsize
 
+def getExpiryDate(date:datetime.date):
+    if date < Constant.EXPIRY_DATES[date.month]:
+        return Constant.EXPIRY_DATES[date.month]
+    else:
+        return Constant.EXPIRY_DATES[date.month+1 if date.month+1 < 12 else 1]
 
-def getSymbolExchangeCode(symbol, strikePrice, option):
-    # strikePrice = str(int((price/100))*100+100)
+def getSymbolExchangeCodeForStock(symbol,strikePrice,option,expiryDate):
+    with open('instruments.csv') as csvfile:
+        fileReader = csv.DictReader(csvfile)
+        for row in fileReader:
+            if row['assettype'] == "OPTIDX" or row['assettype'] == "OPTSTK":
+                try:
+                    d = datetime.datetime.strptime(row['expiry'], "%d-%b-%y")
+                    #     print(f" strike price {row['strikeprice']}  type {row['optiontype']}")
+                    if row['symbolname'] == symbol and int(row['strikeprice']) == strikePrice and row['optiontype'] == option and d.date() == expiryDate:
+                        return {'exchangetoken': row['exchangetoken'], 'tradingsymbol': row['tradingsymbol'], 'lotsize': row['lotsize']}
+                except:
+                    pass
 
-    daysTOAdd = 0
-    match datetime.datetime.now().weekday():
-        case 0:
-            daysTOAdd = 3
-        case 1:
-            daysTOAdd = 2
-        case 2:
-            daysTOAdd = 1
-        case 3:
-            daysTOAdd = 7
-        case 4:
-            daysTOAdd = 6
-    expirayDate = datetime.datetime.now(
-    ) + datetime.timedelta(days=daysTOAdd)  # 4 for friday
-    print(
-        f"strike price {strikePrice} symbol {symbol} option {option} expiry {expirayDate}")
-    # expirayDate = datetime.datetime.strptime(str(expirayDate.day)+"-"+str(expirayDate.month)+"-"+str(expirayDate.year), "%d-%m-%Y")
+
+def getSymbolExchangeCode(symbol, strikePrice, option,expiryDate):
+    if expiryDate != None:
+        return getSymbolExchangeCodeForStock(symbol,strikePrice,option,expiryDate)
+
+    daysToAdd = 0
+    if datetime.datetime.now().weekday() == 0:
+        daysToAdd = 3
+    elif datetime.datetime.now().weekday() == 1:
+        daysToAdd = 2
+    elif datetime.datetime.now().weekday() == 2:
+        daysToAdd = 1
+    elif datetime.datetime.now().weekday() == 3:
+        daysToAdd = 7
+    elif datetime.datetime.now().weekday() == 4:
+        daysToAdd = 6
+    expiryDate = datetime.datetime.now(
+    ) + datetime.timedelta(days=daysToAdd)  # 4 for friday
     with open('instruments.csv') as csvfile:
         fileReader = csv.DictReader(csvfile)
         for row in fileReader:
@@ -63,7 +83,7 @@ def getSymbolExchangeCode(symbol, strikePrice, option):
                     d = datetime.datetime.strptime(row['expiry'], "%d-%b-%y")
                     # if row['symbolname'] == symbol and d.date() == expirayDate.date() and int(row['strikeprice']) == strikePrice:
                     #     print(f" strike price {row['strikeprice']}  type {row['optiontype']}")
-                    if row['symbolname'] == symbol and int(row['strikeprice']) == strikePrice and row['optiontype'] == option and d.date() == expirayDate.date():
+                    if row['symbolname'] == symbol and int(row['strikeprice']) == strikePrice and row['optiontype'] == option and d.date() == expiryDate.date():
                         return {'exchangetoken': row['exchangetoken'], 'tradingsymbol': row['tradingsymbol'], 'lotsize': row['lotsize']}
                 except:
                     pass

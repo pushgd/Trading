@@ -8,17 +8,20 @@ import datetime
 import DBHelper
 from strategy import GannAnalysis, MACrossover
 import playsound
+from constants.intraday_interval import IntradayIntervalEnum
+import json
+
 # playsound.playsound("purchase.mp3")
 
 
 class Symbol:
-    def __init__(self, symbolName, tradingSymbol, exchangeToken, riskfactor=1):
+    def __init__(self, symbolName):
         self.top = None
         self.symbolName = symbolName
-        self.tradingSymbol = tradingSymbol
-        self.exchangeToken = exchangeToken
+        self.tradingSymbol = ""
+        self.exchangeToken = ""
         self.tickData = []
-        self.riskFactor = riskfactor
+        self.riskFactor = ""
         self.topIndex = -1
         self.watchList = []
         self.tradeList = []
@@ -33,6 +36,32 @@ class Symbol:
         self.isActive = True
         self.localTick = 0
         self.quantity = 1
+        self.assetType = ''
+        self.optionSymbol = ''
+        self.exchange = ''
+
+    # def __init__(self, symbolName, tradingSymbol, exchangeToken, riskfactor=1):
+    #     self.top = None
+    #     self.symbolName = symbolName
+    #     self.tradingSymbol = tradingSymbol
+    #     self.exchangeToken = exchangeToken
+    #     self.tickData = []
+    #     self.riskFactor = riskfactor
+    #     self.topIndex = -1
+    #     self.watchList = []
+    #     self.tradeList = []
+    #     self.exchangeType = 'E'
+    #     self.data = {}
+    #     self.strategy = []
+    #     self.lastTradedPrice = 0
+    #     self.tempCandleData = []
+    #     self.high = -1
+    #     self.low = 99999
+    #     self.parameters = {}
+    #     self.isActive = True
+    #     self.localTick = 0
+    #     self.quantity = 1
+    #     self.assetType = ''
 
     def update(self, data):
         # self.addNewTick(data)
@@ -55,18 +84,47 @@ class Symbol:
                     row.append(tick.info[c])
                 csvwriter.writerow(row)
 
-    def setStrategy(self, strategy):
+    def setStrategy(self, strategy,params=None):
         self.strategy.append(strategy)
         trade = Common.Trade(self)
         trade.strategyName = strategy
         # trade.strategy = Common.strategyDict[strategy]
         if strategy == Constant.STRATEGY_GANN_ANALYSIS:
             s = GannAnalysis(self.OnStrategyEvent, trade)
-            trade.strategy = GannAnalysis(self.OnStrategyEvent, trade)
+            trade.strategy = GannAnalysis(self.OnStrategyEvent, trade,params=params)
         elif strategy == Constant.STRATEGY_MA_CROSSOVER_UP:
-            s = MACrossover(self.OnStrategyEvent, trade)
-            trade.strategy = MACrossover(self.OnStrategyEvent, trade)
 
+            trade.strategy = MACrossover(self.OnStrategyEvent, trade, params=params)
+
+            if len(self.tradeList) == 0:
+                print("Get historical data for ",self.symbolName)
+                tillDate = Common.getTillDate()
+                historicalData = json.loads(
+                self.gethHistoricalData(IntradayIntervalEnum.M5, str(tillDate.year), str(tillDate.month),str(tillDate.day)))
+                if Common.simulate:
+                    data = historicalData['data'][0:50]
+                else:
+                    data = historicalData['data']
+                print("Candles received ",len(data))
+                for candle in data:
+                    c = {
+                              Constant.KEY_OPEN: candle[1],
+                              Constant.KEY_HIGH: candle[2],
+                              Constant.KEY_LOW: candle[3],
+                              Constant.KEY_CLOSE: candle[4],
+                              Constant.KEY_DATE: datetime.datetime.strptime(candle[0], "%Y-%m-%d %H:%M:%S"),
+                              Constant.KEY_VOLUME: candle[5]}
+                    trade.strategy.addNewTick(c)
+                print("Indicators calculated for ", self.symbolName)
+            else:
+                trade.strategy.tickData = list(params)
+                trade.strategy.topIndex = len(trade.strategy.tickData)-1
+                # trade.strategy.exportCSV("indicators",list(trade.strategy.tickData[50].info.keys()))
+
+
+            # s = MACrossover(self.OnStrategyEvent, trade)
+            # trade.strategy = MACrossover(self.OnStrategyEvent, trade,params=params)
+        print("Strategy set to ", strategy," for ",self.symbolName)
         self.tradeList.append(trade)
 
     def onNewData(self, lastTradedPrice, volume):
@@ -82,11 +140,11 @@ class Symbol:
                                data[Constant.KEY_DATE])
         # self.addNewTick(data)
 
-    def OnStrategyEvent(self, event, data, strategy):
+    def OnStrategyEvent(self, event, params, strategy):
         if event == Constant.EVENT_CANDLE_CREATED:
-            self.onCandleComplete(data)
+            self.onCandleComplete(params)
         if event == Constant.EVENT_TRADE_COMPLETED:
-            self.setStrategy(strategy.trade.strategyName)
+            self.setStrategy(strategy.trade.strategyName,params=params)
 
     def exitTrade(self, ID):
         for t in self.tradeList:
@@ -122,3 +180,12 @@ class Symbol:
             playsound.playsound("sell.mp3")
         except Exception as e:
             print("Error playing sound ", str(e))
+
+    def gethHistoricalData(self, timeInterval, tillDateYear, tillDateMonth, tillDateDay):
+        response = API.getHistoricalData(timeInterval, self.assetType, self.exchangeToken, self.exchange,
+                                         tillDateYear + "-" + tillDateMonth + "-" + tillDateDay)
+        return response
+
+    def getIntradayChart(self,timeInterval,tillDateYear,tillDateMonth,tillDateDay):
+        API.getIntradayChart(timeInterval, self.assetType, self.exchangeToken, self.exchange,
+                                         tillDateYear + "-" + tillDateMonth + "-" + tillDateDay)

@@ -1,3 +1,4 @@
+import re
 import Constant
 import Symbol
 import Common
@@ -10,6 +11,8 @@ import sys
 import itertools
 import csv
 import logging
+from constants.asset_type import AssetTypeEnum
+from constants.chart_exchange import ChartExchangeEnum
 
 spinner = itertools.cycle(['-', '/', '|', '\\'])
 lastStrategyCheckTime = 0
@@ -26,28 +29,67 @@ strategyList = []
 
 
 def init():
-    with open('instruments.csv') as csvfile:
+    with open('symbolConfig.csv') as csvfile:
         fileReader = csv.DictReader(csvfile)
         for row in fileReader:
-            # if (row['active'] == '1' and row['exchange'] == 'MCX' and row['assettype'] == 'FUTCOM'):
-            if (row['active'] == '1'):
-                exchangeToken = row['exchangetoken']
-                symbolname = row['symbolname']
-                if symbolname == 'Nifty Bank':
-                    symbolname = 'BANKNIFTY'
-                elif symbolname == 'Nifty 50':
-                    symbolname = 'NIFTY'
+            s = Symbol.Symbol(row['symbolname'])
+            if row['optionSymbol']=='':
+                s.optionSymbol = row['symbolname']
+            else:
+                s.optionSymbol = row['optionSymbol']
 
-                tradingsymbol = row['tradingsymbol']
-                symbolsIDList.append(id)
-                # symbolsList.append(name)
-                # symbolMapping[id] = name
+            if row['exchange'] == 'BSE':
+                s.exchange = ChartExchangeEnum.BSE
+            elif row['exchange'] == 'NSE':
+                s.exchange = ChartExchangeEnum.NSE
+            s.isActive = row['Active'] != ''
+            print(s.symbolName)
+            if s.isActive:
+                symbolsList.append(s)
+    for symbol in symbolsList:
+        with open('instruments.csv') as csvfile:
+            fileReader = csv.DictReader(csvfile)
+            for row in fileReader:
+                if row['symbolname'] == symbol.symbolName and row['exchange'] == symbol.exchange  and (
+                        row['assettype'] == 'EQUITY' or row['assettype'] == 'INDEX'):
+                    if symbol.isActive:
+                        print("Active symbol: ",symbol.symbolName)
+                    symbol.exchangeToken = row['exchangetoken']
+                    symbol.quantity = row['lotsize']
+                    if row['assettype'] == 'EQUITY':
+                        symbol.assetType = AssetTypeEnum.EQUITY
+                    elif row['assettype'] == 'INDEX':
+                        symbol.assetType = AssetTypeEnum.INDEX
+                    Common.SymbolDict[symbol.exchangeToken] = symbol
+                    symbol.setStrategy(Constant.STRATEGY_MA_CROSSOVER_UP)
+                    continue
 
-                Common.SymbolDict[exchangeToken] = Symbol.Symbol(
-                    symbolname, tradingsymbol, exchangeToken)
-                Common.SymbolDict[exchangeToken].setStrategy(
-                    Constant.STRATEGY_GANN_ANALYSIS)
-                Common.SymbolDict[exchangeToken].quantity = row['lotsize']
+    # with open('instruments.csv') as csvfile:
+    #     fileReader = csv.DictReader(csvfile)
+    #     for row in fileReader:
+    #         # if (row['active'] == '1' and row['exchange'] == 'MCX' and row['assettype'] == 'FUTCOM'):
+    #         if (row['active'] == '1'):
+    #             exchangeToken = row['exchangetoken']
+    #             symbolname = row['symbolname']
+    #             if symbolname == 'Nifty Bank':
+    #                 symbolname = 'BANKNIFTY'
+    #             elif symbolname == 'Nifty 50':
+    #                 symbolname = 'NIFTY'
+    #
+    #             tradingsymbol = row['tradingsymbol']
+    #             symbolsIDList.append(id)
+    #
+    #
+    #             Common.SymbolDict[exchangeToken] = Symbol.Symbol(
+    #                 symbolname, tradingsymbol, exchangeToken)
+    #             Common.SymbolDict[exchangeToken].setStrategy(
+    #                 Constant.STRATEGY_GANN_ANALYSIS)
+    #             Common.SymbolDict[exchangeToken].quantity = row['lotsize']
+    #             Common.SymbolDict[exchangeToken].assetType = row['assettype']
+    # symbol = Common.SymbolDict[exchangeToken]
+    # print(str(Common.getSymbolExchangeCode(
+    #     symbol.symbolName, Common.getNextStrikePrice(1530,stepsize=20), Constant.TRADE_TYPE_CALL,
+    #     None if symbol.assetType != 'EQUITY' else datetime.datetime.now().date())))
     print(Common.SymbolDict.keys())
     print("Execute Init Done")
 
@@ -83,20 +125,27 @@ def onNewData(message):
             Common.LogDataReceived(
                 str(lastTradePrice) + "," + str(volume) + "," + symbol)
         except Exception:
+            print("------------------------------------------")
             print("Error Parsing")
+            print(d)
+            print("------------------------------------------")
             return
         # logging.dataReceived(str(lastTradePrice)+","+str(volume)+","+symbolMapping[symbol])
         if Common.SymbolDict[symbol].isActive:
             Common.SymbolDict[symbol].onNewData(lastTradePrice, volume)
-            DBHelper.addTradePrice(symbol, lastTradePrice, volume)
+            # DBHelper.addTradePrice(symbol, lastTradePrice, volume)
 
 
-def onNewDataLocal(lastTradePrice, volume, symbol):
+def onNewDataLocal(lastTradePrice, volume, symbol,candle):
     # createCandle(lastTradePrice, symbol, volume)
     # Common.SymbolDict[symbol].updateTrade(lastTradePrice)
-    if Common.SymbolDict[symbolMapping[symbol]].isActive:
-        Common.SymbolDict[symbolMapping[symbol]
-                          ].onNewData(lastTradePrice, volume)
+    # if Common.SymbolDict[symbolMapping[symbol]].isActive:
+    t = Common.SymbolDict[symbol].tradeList[-1]
+    t.strategy.onCandleComplete(candle)
+    t.strategy.update(t, candle[Constant.KEY_HIGH], candle[Constant.KEY_VOLUME])
+    t.strategy.update(t, candle[Constant.KEY_LOW], candle[Constant.KEY_VOLUME])
+
+
 
 
 def activateSymbol(symbol):

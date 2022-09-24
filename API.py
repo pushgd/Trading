@@ -1,10 +1,19 @@
-from EdelweissAPIConnect import EdelweissAPIConnect, Feed
+from EdelweissAPIConnect import EdelweissAPIConnect
+from EdelweissAPIConnect.feed import Feed
 import json
 import Common
 import csv
+import execute
+from constants.intraday_interval import IntradayIntervalEnum
+from constants.intraday_interval import IntradayIntervalEnum
+from constants.intraday_interval import IntradayIntervalEnum
+import Constant
+import datetime
+
+
 APIKey = "QDFbQZIsst9A6A"
 AppSecret = "62eM4#YaL+kX5!Rt"
-reqId = "643366b531a93c8e"
+reqId = "643431b3a8624496"
 accid = "45055736"
 userID = "45055736"
 
@@ -14,8 +23,7 @@ f = None
 
 def init():
     global client
-    client = EdelweissAPIConnect(
-        APIKey, AppSecret, reqId, True)
+    client = EdelweissAPIConnect.EdelweissAPIConnect(APIKey, AppSecret, reqId, True)
     print('Logged in')
 
 # authResponse = client.__GetAuthorization(reqId)
@@ -34,15 +42,20 @@ def initLiveData(callback):
 def initLocalFile(callback):
     print("New Data is here local")
     i = 0
-    with open('data.csv') as csvfile:
-        fileReader = csv.DictReader(csvfile)
-        # next(fileReader)
-        for row in fileReader:
-            print("Row ", str(i), " price ", row['price'])
-            # if i == 421:
-            #     print(i)
-            i = i+1
-            callback(float(row['price']), float(row['volume']), row['symbol'])
+    for s in execute.symbolsList:
+        print("Starting Simulating ",s.symbolName)
+        d = Common.getTillDate()
+        j = json.loads(s.gethHistoricalData(IntradayIntervalEnum.M5,str(d.year),str(d.month),str(d.day)))
+        for candle in j['data'][50:] :
+            c = {
+                Constant.KEY_OPEN: candle[1],
+                Constant.KEY_HIGH: candle[2],
+                Constant.KEY_LOW: candle[3],
+                Constant.KEY_CLOSE: candle[4],
+                Constant.KEY_DATE: datetime.datetime.strptime(candle[0], "%Y-%m-%d %H:%M:%S"),
+                Constant.KEY_VOLUME: candle[5]}
+            callback(0, 0, s.exchangeToken,c)
+        print("Completed Simulating ", s.symbolName)
     print("Done")
 
 
@@ -56,3 +69,6 @@ def sellPosition(TradingSymbol, Exchange, OrderType, Quantity, StreamingSymbol, 
     response = client.PlaceTrade(TradingSymbol, Exchange, "SELL", Duration, OrderType, Quantity,
                                  StreamingSymbol, LimitPrice, ProductCode=productCode)
     return response
+
+def getHistoricalData(Interval,AssetType,Symbol,ExchangeType,tillDate):
+    return client.getIntradayChart(ExchangeType,AssetType,Symbol,Interval,tillDate,IncludeContinuousFutures = False)
