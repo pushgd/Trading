@@ -1,2 +1,5 @@
 *.pyc
 *.xlsx
+other/
+logs/Log1092022.csv
+logs/

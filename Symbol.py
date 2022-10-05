@@ -84,7 +84,7 @@ class Symbol:
                     row.append(tick.info[c])
                 csvwriter.writerow(row)
 
-    def setStrategy(self, strategy,params=None):
+    def setStrategy(self, strategy,params=None,historicalData =None):
         self.strategy.append(strategy)
         trade = Common.Trade(self)
         trade.strategyName = strategy
@@ -99,12 +99,12 @@ class Symbol:
             if len(self.tradeList) == 0:
                 print("Get historical data for ",self.symbolName)
                 tillDate = Common.getTillDate()
-                historicalData = json.loads(
-                self.gethHistoricalData(IntradayIntervalEnum.M5, str(tillDate.year), str(tillDate.month),str(tillDate.day)))
-                if Common.simulate:
-                    data = historicalData['data'][0:50]
-                else:
+                if historicalData == None:
+                    historicalData = json.loads(
+                    self.gethHistoricalData(IntradayIntervalEnum.M5, str(tillDate.year), str(tillDate.month),str(tillDate.day)))
                     data = historicalData['data']
+                else:
+                    data = historicalData
                 print("Candles received ",len(data))
                 for candle in data:
                     c = {
@@ -126,6 +126,7 @@ class Symbol:
             # trade.strategy = MACrossover(self.OnStrategyEvent, trade,params=params)
         print("Strategy set to ", strategy," for ",self.symbolName)
         self.tradeList.append(trade)
+        return trade
 
     def onNewData(self, lastTradedPrice, volume):
         self.lastTradedPrice = lastTradedPrice
@@ -143,7 +144,7 @@ class Symbol:
     def OnStrategyEvent(self, event, params, strategy):
         if event == Constant.EVENT_CANDLE_CREATED:
             self.onCandleComplete(params)
-        if event == Constant.EVENT_TRADE_COMPLETED:
+        if event == Constant.EVENT_TRADE_COMPLETED or event == Constant.EVENT_TRADE_TIMEOUT:
             self.setStrategy(strategy.trade.strategyName,params=params)
 
     def exitTrade(self, ID):
@@ -167,6 +168,8 @@ class Symbol:
             print("Error playing sound ", str(e))
 
     def sell(self, tradingSymbol, exchangeToken, exchange, orderType, quantity, limitPrice=0):
+        if Common.simulate:
+            return
         try:
             r = API.sellPosition(tradingSymbol, exchange, orderType,
                                  quantity, exchangeToken, limitPrice)

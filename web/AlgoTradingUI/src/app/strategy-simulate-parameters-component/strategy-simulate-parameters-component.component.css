@@ -1,0 +1,24 @@
+.mat-column-table-position {
+    width: 1%;
+    border-right: 1px solid currentColor;
+    padding-right: 24px;
+    text-align: center;
+}
+
+.mat-column-table-parameter {
+    width: 3%;
+    border-right: 1px solid currentColor;
+    padding-right: 24px;
+    text-align: center;
+}
+
+.mat-column-table-input {
+    width: 3%;
+    border-right: 1px solid currentColor;
+    padding-right: 24px;
+    text-align: center;
+}
+
+input {
+    width: 80%;
+}

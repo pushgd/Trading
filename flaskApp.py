@@ -1,15 +1,11 @@
 
 from random import randint, random
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 import Constant
 import Common
 import execute
+
 app = Flask(__name__)
-import logging
-log = logging.getLogger('werkzeug')
-log.setLevel(logging.ERROR)
-app.logger.disabled = True
-log.disabled = True
 
 def startFlask():
     app.run(host='0.0.0.0', port='8080')
@@ -98,10 +94,13 @@ def exitTrade(symbol,ID):
     Common.SymbolDict[symbol].exitTrade(ID)
 
 
-@app.route("/activateSymbol/<symbol>", methods=['POST'])
-def activateSymbol(symbol):
-    execute.activateSymbol(symbol)
-    replay = jsonify({'1':'1'})
+@app.route("/simulate/<symbol>", methods=['POST'])
+def simulate(symbol):
+    request.json
+    print(symbol," ",startDate," ",endDate)
+    execute.simulate(symbol,startDate,endDate)
+    replay = "reply"
+    replay = jsonify(request.json)
     replay.headers.add('Access-Control-Allow-Origin', '*')
     return replay
 

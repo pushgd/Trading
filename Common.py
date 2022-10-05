@@ -8,7 +8,7 @@ watchlist = []
 strategyDict = {}
 
 simulate = True
-
+simulateLog = []
 
 def LogDataReceived(msg):
     Constant.LOGGER.dataReceived(msg)
@@ -148,12 +148,18 @@ class Trade:
         self.strategyName = None
         self.gain = 0
         self.timeOfEntry = 0
+        self.startDate = None
+        self.buyDate = None
+        self.exitDate = None
 
     def serialize(self):
         return {'status': self.status, 'entryPrice': self.entryPrice, 'entryTime': self.entryTime,
                 'exitPrice': self.exitPrice, 'exitTime': self.exitTime, 'buyTriggerCall': self.buyTriggerCall, 'buyTriggerPut': self.buyTriggerPut,
                 'stopLoss': self.stopLoss, 'takeProfit': self.takeProfit, 'ID': self.ID, 'strategyName': self.strategyName,
-                'gain': self.gain}
+                'gain': self.gain,"startDate":self.startDate,"buyDate":self.buyDate,"exitDate":self.exitDate}
+
+
+
 
 
 class Tick:

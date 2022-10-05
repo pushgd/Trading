@@ -56,17 +56,16 @@ print("start")
 
 def main():
     try:
-        print("_______________________________________________")
-        print("Starting Flask")
-        print("_______________________________________________")
-        thread.start_new_thread(flaskApp.startFlask, ())
+        # print("_______________________________________________")
+        # print("Starting Flask")
+        # print("_______________________________________________")
+        # thread.start_new_thread(flaskApp.startFlask, ())
 
         print("_______________________________________________")
         print("Fetch Data")
         print("_______________________________________________")
 
         thread.start_new_thread(fetchAndAnalyseDataForEquityAndIndex, ())
-        # thread.start_new_thread(fetchAndAnalyseDataForEquityAndIndex, ())
     except Exception as e:
         print("Can not start flask")
         print(e)

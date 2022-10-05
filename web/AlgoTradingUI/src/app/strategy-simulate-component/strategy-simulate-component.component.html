@@ -1,0 +1,60 @@
+<mat-expansion-panel hideToggle>
+    <mat-expansion-panel-header>
+        <mat-panel-title>
+            Strategy
+        </mat-panel-title>
+        <mat-panel-description>
+            <mat-form-field appearance="fill" (click)="$event.stopPropagation()">
+                <mat-label color='accent'>Strategy</mat-label>
+                <mat-select [(ngModel)]="selectedStrategy">
+                    <mat-option *ngFor="let s of strategyList" [value]="s.index" [disabled]="s.inUse">
+                        {{s.name}}
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+            <button mat-raised-button color="primary" (click)="addStrategy();$event.stopPropagation()"
+                [disabled]='selectedStrategy < 0'>Add</button>
+        </mat-panel-description>
+    </mat-expansion-panel-header>
+    <div *ngFor="let s of strategyList">
+
+        <div style="margin-bottom: 5px;" *ngIf="s.inUse">
+            <mat-expansion-panel hideToggle>
+                <mat-expansion-panel-header>
+                    <mat-panel-title>
+                        {{s.name}}
+                    </mat-panel-title>
+                    <mat-panel-description>
+                        some data here
+                    </mat-panel-description>
+                </mat-expansion-panel-header>
+                <mat-form-field appearance="fill">
+                    <mat-label>Select simulation Date Range</mat-label>
+                    <mat-date-range-input [rangePicker]="picker">
+                        <input matStartDate [(ngModel)]="dateStart" placeholder="Start date">
+                        <input matEndDate [(ngModel)]="dateEnd" placeholder="End date">
+                    </mat-date-range-input>
+                    <mat-hint>MM/DD/YYYY – MM/DD/YYYY</mat-hint>
+                    <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                    <mat-date-range-picker #picker></mat-date-range-picker>
+                </mat-form-field>
+                <div style="display: flex;">
+                    <app-strategy-simulate-parameters-component style="width: 70%;">
+                    </app-strategy-simulate-parameters-component>
+                    <textarea disabled="true" style="width: 30%;" [(ngModel)]="simulateLogs"></textarea>
+                    <button [cdkCopyToClipboard]="simulateLogs">copy</button>
+                </div>
+                <div style="align-items: center;">
+                    <button mat-raised-button style="margin: 10px; width: 100%;" color="accent"
+                        (click)="simulateClicked(s)">Simulate</button>
+                    <button mat-raised-button style="margin: 10px;width: 100%" color="warn"
+                        (click)="removeClicked(s)">Remove</button>
+                </div>
+                <mat-divider></mat-divider>
+            </mat-expansion-panel>
+        </div>
+
+
+
+    </div>
+</mat-expansion-panel>

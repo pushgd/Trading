@@ -5,15 +5,14 @@ import Common
 import csv
 import execute
 from constants.intraday_interval import IntradayIntervalEnum
-from constants.intraday_interval import IntradayIntervalEnum
-from constants.intraday_interval import IntradayIntervalEnum
+from constants.action import ActionEnum
 import Constant
 import datetime
 
 
 APIKey = "QDFbQZIsst9A6A"
 AppSecret = "62eM4#YaL+kX5!Rt"
-reqId = "643431b3a8624496"
+reqId = "376366e6d20a3aef"
 accid = "45055736"
 userID = "45055736"
 
@@ -60,13 +59,13 @@ def initLocalFile(callback):
 
 
 def placeOrder(TradingSymbol, Exchange, OrderType, Quantity, StreamingSymbol, LimitPrice, Duration="DAY", Disclosed_Quantity="0", TriggerPrice="0", productCode="NRML"):
-    response = client.PlaceTrade(TradingSymbol, Exchange, "BUY", Duration, OrderType, Quantity,
+    response = client.PlaceTrade(TradingSymbol, Exchange,ActionEnum.BUY, Duration, OrderType, Quantity,
                                  StreamingSymbol, LimitPrice, ProductCode=productCode)
     return response
 
 
 def sellPosition(TradingSymbol, Exchange, OrderType, Quantity, StreamingSymbol, LimitPrice, Duration="DAY", disclosed_Quantity="0", triggerPrice="0", productCode="NRML"):
-    response = client.PlaceTrade(TradingSymbol, Exchange, "SELL", Duration, OrderType, Quantity,
+    response = client.PlaceTrade(TradingSymbol, Exchange, ActionEnum.SELL, Duration, OrderType, Quantity,
                                  StreamingSymbol, LimitPrice, ProductCode=productCode)
     return response
 

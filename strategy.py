@@ -59,7 +59,7 @@ class StrategyBaseClass:
         self.quantity = 0
 
 
-    def update(self, trade, lastTradedPrice):
+    def update(self, trade, lastTradedPrice,volume):
         print("Update base class")
 
     def onCandleComplete(self, candle):
@@ -211,7 +211,10 @@ class GannAnalysis(StrategyBaseClass):
 class MACrossover(StrategyBaseClass):
     def update(self, trade, currentPrice, volume):
         self.candleCreator.createCandle(currentPrice, volume)
-        if trade.status == Constant.TRADE_LOOKING_FOR_ENTRY:
+        if self.trade.startDate.date() < self.top.info[Constant.KEY_DATE].date():
+            trade.status = Constant.TRADE_TIMED_OUT
+            self.symbolCallBack(Constant.TRADE_TIMED_OUT, self.tickData, self)
+        elif trade.status == Constant.TRADE_LOOKING_FOR_ENTRY:
             if currentPrice > trade.buyTriggerCall:
                 trade.status = Constant.TRADE_ENTERED
                 trade.entryPrice = currentPrice
@@ -220,6 +223,7 @@ class MACrossover(StrategyBaseClass):
                 print("TakeProfit ", trade.takeProfit,
                       " Stoploss ", trade.stopLoss)
                 print("____________________________________________")
+                trade.buyDate = self.top.info[Constant.KEY_DATE]
         elif trade.status == Constant.TRADE_ENTERED:
             if currentPrice > trade.takeProfit:
                 trade.status = Constant.TRADE_COMPLETED
@@ -229,7 +233,9 @@ class MACrossover(StrategyBaseClass):
                 trade.exitPrice = currentPrice
                 trade.gain = (trade.entryPrice - currentPrice)
                 trade.status = Constant.TRADE_COMPLETED
+                trade.exitDate = self.top.info[Constant.KEY_DATE]
                 self.symbolCallBack(Constant.EVENT_TRADE_COMPLETED, self.tickData, self)
+
             elif currentPrice < trade.stopLoss:
                 print("Loss sell ", trade.symbol.symbolName, "on ", self.top.info[Constant.KEY_DATE], " for price ",
                       currentPrice, " with loss ", (trade.entryPrice - currentPrice))
@@ -237,6 +243,7 @@ class MACrossover(StrategyBaseClass):
                 trade.exitPrice = currentPrice
                 trade.gain = (trade.entryPrice - currentPrice)
                 trade.status = Constant.TRADE_COMPLETED
+                trade.exitDate = self.top.info[Constant.KEY_DATE]
                 self.symbolCallBack(Constant.EVENT_TRADE_COMPLETED, self.tickData, self)
 
     def onNewCandleCreated(self, candle):
@@ -253,6 +260,7 @@ class MACrossover(StrategyBaseClass):
                 self.trade.stopLoss = Common.getLowestValue(self)
                 self.trade.takeProfit = self.trade.buyTriggerCall + \
                     abs(self.trade.buyTriggerCall - self.trade.stopLoss)
+                self.trade.startDate = candle.info[Constant.KEY_DATE]
                 print("")
                 print("")
                 print("")
@@ -262,6 +270,7 @@ class MACrossover(StrategyBaseClass):
 
                 print("Entering Trade for ", self.trade.symbol.symbolName,
                       " ", self.top.info[Constant.KEY_DATE])
+
 
 
 def init():
