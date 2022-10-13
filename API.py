@@ -1,3 +1,5 @@
+import os
+
 from EdelweissAPIConnect import EdelweissAPIConnect
 from EdelweissAPIConnect.feed import Feed
 import json
@@ -8,11 +10,13 @@ from constants.intraday_interval import IntradayIntervalEnum
 from constants.action import ActionEnum
 import Constant
 import datetime
-
+from constants.duration import DurationEnum
+from constants.product_code import ProductCodeENum
+import zipfile
 
 APIKey = "QDFbQZIsst9A6A"
 AppSecret = "62eM4#YaL+kX5!Rt"
-reqId = "376366e6d20a3aef"
+reqId = "363863b500a19624"
 accid = "45055736"
 userID = "45055736"
 
@@ -23,7 +27,11 @@ f = None
 def init():
     global client
     client = EdelweissAPIConnect.EdelweissAPIConnect(APIKey, AppSecret, reqId, True)
+
+    with zipfile.ZipFile("instruments.zip", 'r') as zip_ref:
+        zip_ref.extractall(os.getcwd())
     print('Logged in')
+
 
 # authResponse = client.__GetAuthorization(reqId)
 
@@ -58,15 +66,47 @@ def initLocalFile(callback):
     print("Done")
 
 
-def placeOrder(TradingSymbol, Exchange, OrderType, Quantity, StreamingSymbol, LimitPrice, Duration="DAY", Disclosed_Quantity="0", TriggerPrice="0", productCode="NRML"):
-    response = client.PlaceTrade(TradingSymbol, Exchange,ActionEnum.BUY, Duration, OrderType, Quantity,
-                                 StreamingSymbol, LimitPrice, ProductCode=productCode)
+def placeOrder(TradingSymbol, Exchange, OrderType, Quantity, StreamingSymbol, LimitPrice, Duration=DurationEnum.DAY, Disclosed_Quantity="0", TriggerPrice="0", productCode=ProductCodeENum.NRML):
+    response = None
+    try:
+        response = client.PlaceTrade(TradingSymbol, Exchange,ActionEnum.BUY, Duration, OrderType, Quantity,
+                             StreamingSymbol, LimitPrice, ProductCode=productCode)
+    except Exception as e:
+        # try again #2
+        try:
+            response = client.PlaceTrade(TradingSymbol, Exchange, ActionEnum.BUY, Duration, OrderType, Quantity,
+                                     StreamingSymbol, LimitPrice, ProductCode=productCode)
+        except Exception as e:
+            # try again #3
+            try:
+                response = client.PlaceTrade(TradingSymbol, Exchange, ActionEnum.BUY, Duration, OrderType, Quantity,
+                                         StreamingSymbol, LimitPrice, ProductCode=productCode)
+            except:
+                print("Error purchasing")
+
     return response
 
 
-def sellPosition(TradingSymbol, Exchange, OrderType, Quantity, StreamingSymbol, LimitPrice, Duration="DAY", disclosed_Quantity="0", triggerPrice="0", productCode="NRML"):
-    response = client.PlaceTrade(TradingSymbol, Exchange, ActionEnum.SELL, Duration, OrderType, Quantity,
-                                 StreamingSymbol, LimitPrice, ProductCode=productCode)
+def sellPosition(TradingSymbol, Exchange, OrderType, Quantity, StreamingSymbol, LimitPrice, Duration="DAY", disclosed_Quantity="0", triggerPrice="0",  productCode=ProductCodeENum.NRML):
+
+    response = None
+    try:
+        response = client.PlaceTrade(TradingSymbol, Exchange, ActionEnum.SELL, DurationEnum.DAY, OrderType, Quantity,
+                                     StreamingSymbol, LimitPrice, ProductCode=productCode)
+    except Exception as e:
+        # try again #2
+        try:
+            response = client.PlaceTrade(TradingSymbol, Exchange, ActionEnum.SELL, DurationEnum.DAY, OrderType,
+                                         Quantity,
+                                         StreamingSymbol, LimitPrice, ProductCode=productCode)
+        except Exception as e:
+            # try again #3
+            try:
+                response = client.PlaceTrade(TradingSymbol, Exchange, ActionEnum.SELL, DurationEnum.DAY, OrderType,
+                                             Quantity,
+                                             StreamingSymbol, LimitPrice, ProductCode=productCode)
+            except:
+                print("Error Selling")
     return response
 
 def getHistoricalData(Interval,AssetType,Symbol,ExchangeType,tillDate):

@@ -1,11 +1,6 @@
-import { Component, OnInit } from '@angular/core';
-
-interface parameter {
-  pos: number;
-  name: string;
-  type: string;
-  value: any;
-}
+import { Component, Input, OnInit, ViewChild } from '@angular/core';
+import { MatTable } from '@angular/material/table';
+import { parameter } from '../common'
 
 @Component({
   selector: 'app-strategy-parameter-component',
@@ -13,13 +8,12 @@ interface parameter {
   styleUrls: ['./strategy-parameter-component.component.css']
 })
 export class StrategyParameterComponentComponent implements OnInit {
-  dataSource: parameter[] = [
-    { pos: 1, name: "P1", type: "text", value: '' },
-    { pos: 2, name: "P2", type: "number", value: '' },
-    { pos: 3, name: "P3", type: "date", value: '' },
-  ];
+
+  @ViewChild(MatTable) matTable?: MatTable<parameter>;
+  @Input() parameters: parameter[] = [];
   displayedColumns: string[] = ["table-position", "table-parameter", "table-input"]
-  constructor() { }
+  constructor() {
+  }
 
   ngOnInit(): void {
   }
@@ -29,6 +23,7 @@ export class StrategyParameterComponentComponent implements OnInit {
     console.log(element);
   }
   public getParameters(): parameter[] {
-    return this.dataSource;
+    return this.parameters;
   }
+
 }

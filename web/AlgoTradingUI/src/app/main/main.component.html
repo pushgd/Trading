@@ -5,12 +5,12 @@
 
     <ng-container matColumnDef="table-position">
         <th mat-header-cell *matHeaderCellDef> No. </th>
-        <td mat-cell *matCellDef="let element"> {{element.position}} </td>
+        <td mat-cell *matCellDef="let element"> {{element.index}} </td>
     </ng-container>
 
     <ng-container matColumnDef="table-name">
         <th mat-header-cell *matHeaderCellDef> Name </th>
-        <td mat-cell *matCellDef="let element"> {{element.name}} </td>
+        <td mat-cell *matCellDef="let element"> {{element.name}} <br>{{element.currentPrice}} </td>
     </ng-container>
     <ng-container matColumnDef="table-activeButton">
         <th mat-header-cell *matHeaderCellDef> Activate </th>
@@ -19,15 +19,18 @@
         </td>
     </ng-container>
     <ng-container matColumnDef="table-strategy">
-        <th mat-header-cell *matHeaderCellDef> Strategy </th>
+        <th mat-header-cell *matHeaderCellDef (click)="strategyHeadClicked()">
+            Strategy </th>
         <td mat-cell *matCellDef="let element">
             <app-strategy-component symbolName={{element.name}}></app-strategy-component>
         </td>
     </ng-container>
     <ng-container matColumnDef="table-simulate">
-        <th mat-header-cell *matHeaderCellDef> Simulate </th>
+        <th mat-header-cell *matHeaderCellDef (click)="simulateHeadClicked()">
+            Simulate </th>
         <td mat-cell *matCellDef="let element">
-            <app-strategy-simulate-component symbolName={{element.name}}></app-strategy-simulate-component>
+            <app-strategy-simulate-component symbolName={{element.name}}>
+            </app-strategy-simulate-component>
         </td>
     </ng-container>
     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>

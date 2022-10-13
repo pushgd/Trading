@@ -50,8 +50,20 @@ EVENING_STAR = "EVENING STAR"  # downward
 MORNING_STAR = "MORNING STAR"  # upward
 
 
+
+PARAMETER_TICK_DATA = 'tickData'
+PARAMETER_Quantity = 'Quantity'
+
 STRATEGY_MA_CROSSOVER_UP = "MACrossoverup"
+STRATEGY_PARAMETER_MA_CROSSOVER_UP = [
+    {"name": PARAMETER_Quantity,
+    "type":"number"}]
 STRATEGY_GANN_ANALYSIS = "GannAnalysis"
+STRATEGY_PARAMETER_GANN_ANALYSIS = [
+    {"name": "Quantity",
+    "type":"number"}]
+
+
 
 # indicator parameters
 MOVING_AVERAGE_SHORT_WINDOW = 21
@@ -143,6 +155,7 @@ EVENT_TRADE_COMPLETED = 1
 EVENT_TRADE_TIMEOUT = 2
 
 EXIT_TIME = datetime.datetime.now().replace(hour=14,minute=45)
+START_TIME = datetime.time(hour=9, minute=30)
 
 LOGGING_LEVEL_VERBOSE = 1
 LOGGING_LEVEL_NEW_DATA_RECEIVED = 2
@@ -186,3 +199,4 @@ fh.setLevel(LOGGING_LEVEL_VERBOSE)
 fh.setFormatter(f)
 LOGGER.addHandler(fh)
 LOGGER.setLevel(LOGGING_LEVEL_VERBOSE)
+

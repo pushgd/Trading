@@ -1,24 +1,19 @@
 import copy
-import re
-
-import API
 import Constant
 import Symbol
 import Common
-import time
-import strategy
 import json
 import datetime
-import DBHelper
 import sys
 import itertools
 import csv
-import logging
+
 from constants.asset_type import AssetTypeEnum
 from constants.chart_exchange import ChartExchangeEnum
 from constants.intraday_interval import IntradayIntervalEnum
+from constants.exchange import ExchangeEnum
 
-spinner = itertools.cycle(['-', '/', '|', '\\'])
+spinner = itertools.cycle(['*', '#'])
 lastStrategyCheckTime = 0
 tempCandleData = {}
 lastDataReceiveTime = {}
@@ -66,7 +61,10 @@ def init():
                     elif row['assettype'] == 'INDEX':
                         symbol.assetType = AssetTypeEnum.INDEX
                     Common.SymbolDict[symbol.exchangeToken] = symbol
-                    # symbol.setStrategy(Constant.STRATEGY_MA_CROSSOVER_UP)
+                    symbol.setStrategy(Constant.STRATEGY_GANN_ANALYSIS,params={Constant.PARAMETER_Quantity:2})
+                    # symbol.buy(symbol.tradingSymbol,
+                    #            symbol.exchangeToken, symbol.quantity)
+
                     continue
 
     # with open('instruments.csv') as csvfile:
@@ -96,9 +94,10 @@ def init():
     #     symbol.symbolName, Common.getNextStrikePrice(1530,stepsize=20), Constant.TRADE_TYPE_CALL,
     #     None if symbol.assetType != 'EQUITY' else datetime.datetime.now().date())))
     print(Common.SymbolDict.keys())
-    simulate("HDFC","2022-09-01","2022-10-01",Constant.STRATEGY_MA_CROSSOVER_UP)
+    # Common.SymbolDict['-21'].sell('BANKNIFTY22O2038900PE', '53716_NFO', 1, exchange=ExchangeEnum.NFO)
+    # simulate("HDFC","2022-09-01","2022-10-01",Constant.STRATEGY_GANN_ANALYSIS)
     print("Execute Init Done")
-    exit()
+
 
 
 
@@ -111,9 +110,10 @@ temp = {}
 
 
 def onNewData(message):
+    sys.stdout.write('\b')  # erase the last written char
     sys.stdout.write(next(spinner))  # write the next character
     sys.stdout.flush()  # flush stdout buffer (actual character display)
-    sys.stdout.write('\b')  # erase the last written char
+
     # if message.count('response') > 1 and message.endswith('3"}}\n'):
     #     print(message.count('response'))
     message = message.strip()
@@ -173,7 +173,7 @@ def simulate(symbol,startDate,endDate,strategy,parames={}):
     tillDate = datetime.datetime.strptime(endDate, "%Y-%m-%d")
     tillDate2 = datetime.datetime.strptime(endDate, "%Y-%m-%d")
 
-    s =  copy.deepcopy(Common.getSymbolByTradingSymbol(symbol))
+    s =  copy.deepcopy(Common.getSymbolBySymbolName(symbol))
     s.tradeList.clear()
 
     historicalData = []
@@ -191,23 +191,39 @@ def simulate(symbol,startDate,endDate,strategy,parames={}):
         data['data'].reverse()
         inBetweenHistoricalData.extend(data['data'])
     inBetweenHistoricalData.reverse()
-    s.setStrategy(strategy,historicalData =  [i for i in historicalData if datetime.datetime.strptime(i[0], "%Y-%m-%d %H:%M:%S") < startDate])
+
+    if strategy == Constant.STRATEGY_MA_CROSSOVER_UP:
+        simulateMACrossoverUp(historicalData, inBetweenHistoricalData, lastDate, s, startDate, strategy)
+    elif strategy == Constant.STRATEGY_GANN_ANALYSIS:
+        simulateGANN(historicalData, inBetweenHistoricalData, lastDate, s, startDate, strategy)
+
+    Common.simulate = False
+    replay = []
+    for t in s.tradeList:
+        replay.append(t.serialize())
+    print("Simulation completed for ", symbol)
+
+    return replay
+
+
+def simulateMACrossoverUp(historicalData, inBetweenHistoricalData, lastDate, s, startDate, strategy):
+    s.setStrategy(strategy, historicalData=[i for i in historicalData if
+                                            datetime.datetime.strptime(i[0], "%Y-%m-%d %H:%M:%S") < startDate]).simulate =True
     lastIndex = 0
     for candle in historicalData:
 
-        trade = s.tradeList[-1]
         date = datetime.datetime.strptime(candle[0], "%Y-%m-%d %H:%M:%S")
-        if date<startDate:
+        if date < startDate:
             continue
-        for i in range(lastIndex,len(inBetweenHistoricalData)):
+        for i in range(lastIndex, len(inBetweenHistoricalData)):
             c = inBetweenHistoricalData[i]
-            lastIndex = lastIndex+1
+            lastIndex = lastIndex + 1
             d = datetime.datetime.strptime(c[0], "%Y-%m-%d %H:%M:%S")
             if d <= date and d > lastDate:
-                trade.strategy.update(trade, c[1], c[5])
-                trade.strategy.update(trade, c[2], c[5])
-                trade.strategy.update(trade, c[3], c[5])
-                trade.strategy.update(trade, c[4], c[5])
+                s.tradeList[-1].strategy.update(s.tradeList[-1], c[1], c[5])
+                s.tradeList[-1].strategy.update(s.tradeList[-1], c[2], c[5])
+                s.tradeList[-1].strategy.update(s.tradeList[-1], c[3], c[5])
+                s.tradeList[-1].strategy.update(s.tradeList[-1], c[4], c[5])
             if d > date:
                 break
         c = {
@@ -219,11 +235,34 @@ def simulate(symbol,startDate,endDate,strategy,parames={}):
             Constant.KEY_VOLUME: candle[5]}
         lastDate = datetime.datetime.strptime(candle[0], "%Y-%m-%d %H:%M:%S")
         # trade.strategy.update(trade, candle[Constant.KEY_HIGH], candle[Constant.KEY_VOLUME])
-        trade.strategy.onCandleComplete(c)
+        s.tradeList[-1].strategy.onCandleComplete(c)
         # print("Done for ",date)
-        Common.simulate = False
+def simulateGANN(historicalData, inBetweenHistoricalData, lastDate, s, startDate, strategy):
+    s.setStrategy(strategy).simulate = True
+    lastIndex = 0
+    for candle in historicalData:
 
-
-        print("Simulation completed for ",symbol)
-
-
+        date = datetime.datetime.strptime(candle[0], "%Y-%m-%d %H:%M:%S")
+        if date < startDate:
+            continue
+        for i in range(lastIndex, len(inBetweenHistoricalData)):
+            c = inBetweenHistoricalData[i]
+            lastIndex = lastIndex + 1
+            d = datetime.datetime.strptime(c[0], "%Y-%m-%d %H:%M:%S")
+            if d <= date and d > lastDate:
+                s.tradeList[-1].strategy.update(s.tradeList[-1], c[1], c[5])
+                s.tradeList[-1].strategy.update(s.tradeList[-1], c[2], c[5])
+                s.tradeList[-1].strategy.update(s.tradeList[-1], c[3], c[5])
+                s.tradeList[-1].strategy.update(s.tradeList[-1], c[4], c[5])
+            if d > date:
+                break
+        c = {
+            Constant.KEY_OPEN: candle[1],
+            Constant.KEY_HIGH: candle[2],
+            Constant.KEY_LOW: candle[3],
+            Constant.KEY_CLOSE: candle[4],
+            Constant.KEY_DATE: d,
+            Constant.KEY_VOLUME: candle[5]}
+        lastDate = datetime.datetime.strptime(candle[0], "%Y-%m-%d %H:%M:%S")
+        # trade.strategy.update(trade, candle[Constant.KEY_HIGH], candle[Constant.KEY_VOLUME])
+        s.tradeList[-1].strategy.onCandleComplete(c)

@@ -17,6 +17,9 @@ import { StrategyParameterComponentComponent } from './strategy-parameter-compon
 import { FormsModule } from '@angular/forms';
 import { StrategySimulateComponentComponent } from './strategy-simulate-component/strategy-simulate-component.component';
 import { StrategySimulateParametersComponentComponent } from './strategy-simulate-parameters-component/strategy-simulate-parameters-component.component';
+import { MatIconModule } from '@angular/material/icon';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { BackendServiceService } from './backend-service.service';
 @NgModule({
   declarations: [
     AppComponent,
@@ -38,9 +41,11 @@ import { StrategySimulateParametersComponentComponent } from './strategy-simulat
     FormsModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    ClipboardModule
+    ClipboardModule,
+    MatIconModule,
+    MatSnackBarModule
   ],
-  providers: [],
+  providers: [BackendServiceService],
   bootstrap: [AppComponent]
 })
 export class AppModule {

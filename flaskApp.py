@@ -1,12 +1,17 @@
 
 from random import randint, random
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 import Constant
 import Common
 import execute
 
+
+
+
 app = Flask(__name__)
 
+cors = CORS(app)
 def startFlask():
     app.run(host='0.0.0.0', port='8080')
 
@@ -20,15 +25,24 @@ def getData(symbol):
     replay.headers.add('Access-Control-Allow-Origin', '*')
     return replay
 
-@app.route("/getallsymbols", methods=['GET'])
+@app.route("/getallSymbols", methods=['GET'])
 def getAllSymbols():
-    replay = jsonify(list(Common.SymbolDict.keys()))
+    symbolList = []
+    for s in execute.symbolsList:
+       symbolList.append( {"symbolName": s.symbolName,"tradingSymbol" : s.tradingSymbol,"exchangeToken" : s.exchangeToken})
+
+    replay = jsonify(symbolList)
     replay.headers.add('Access-Control-Allow-Origin', '*')
     return replay
 
-@app.route("/getallstrategy", methods=['GET'])
+@app.route("/getallStrategy", methods=['GET'])
 def getAllStrategy():
-    replay = jsonify([Constant.STRATEGY_GANN_ANALYSIS,Constant.STRATEGY_MA_CROSSOVER_UP])
+    replay = [{"name":Constant.STRATEGY_GANN_ANALYSIS,
+               "parameter":Constant.STRATEGY_PARAMETER_GANN_ANALYSIS},
+              {"name": Constant.STRATEGY_MA_CROSSOVER_UP,
+               "parameter": Constant.STRATEGY_PARAMETER_MA_CROSSOVER_UP},
+              ]
+    replay = jsonify(replay)
     replay.headers.add('Access-Control-Allow-Origin', '*')
     return replay
 
@@ -36,10 +50,8 @@ def getAllStrategy():
 @app.route("/getCurrentPrice/all", methods=['GET'])
 def getCurrentPriceAll():
     replay = {}
-    price = 1234
     for key in Common.SymbolDict.keys():
-        replay[key]= price
-        price = price + randint(1000,1500)
+        replay[Common.SymbolDict[key].tradingSymbol]= Common.SymbolDict[key].lastTradedPrice
 
     replay = jsonify(replay)
     replay.headers.add('Access-Control-Allow-Origin', '*')
@@ -91,20 +103,44 @@ def getTrade(symbol):
 
 @app.route("/exitTrades/<symbol>/<ID>", methods=['POST'])
 def exitTrade(symbol,ID):
-    Common.SymbolDict[symbol].exitTrade(ID)
+    Common.getSymbolBySymbolName(symbol).exitTrade(ID)
 
 
-@app.route("/simulate/<symbol>", methods=['POST'])
-def simulate(symbol):
-    request.json
+@app.route("/simulate1/<symbol>", methods=['POST'])
+def simulate1(symbol):
+    startDate = request.json['startDate']
+    endDate = request.json['endDate']
     print(symbol," ",startDate," ",endDate)
-    execute.simulate(symbol,startDate,endDate)
     replay = "reply"
-    replay = jsonify(request.json)
+    replay = jsonify(execute.simulate(symbol,startDate,endDate,Constant.STRATEGY_MA_CROSSOVER_UP))
     replay.headers.add('Access-Control-Allow-Origin', '*')
     return replay
 
-@app.route("/deactivateSymbol/<symbol>", methods=['POST'])
+@app.route("/setStrategy/<symbol>", methods=['POST'])
+def setStrategy(symbol):
+    strategy = request.json['strategy']
+    parameters = {'Quantity':int(request.json['Quantity'])}
+    print(symbol+" "+str(strategy)+" "+str(parameters))
+    Common.getSymbolBySymbolName(symbol).setStrategy(strategy,parameters)
+    replay = jsonify(str(strategy)+" "+str(parameters))
+    replay.headers.add('Access-Control-Allow-Origin', '*')
+    return replay
+
+@app.route("/simulate/<symbol>", methods=['GET'])
+def simulate(symbol):
+    startDate = request.args.get("startDate")
+    endDate = request.args.get("endDate")
+    strategy = request.args.get("strategy")
+    print(symbol," ",startDate," ",endDate," ",strategy)
+    replay = "reply"
+    try:
+        replay = jsonify(execute.simulate(symbol,startDate,endDate,strategy))
+    except Exception as e:
+        replay = jsonify(str(e))
+    replay.headers.add('Access-Control-Allow-Origin', '*')
+    return replay
+
+@app.route("/deactivateSymbol/<symbol>", methods=['GET'])
 def deactivateSymbol(symbol):
     execute.deactivateSymbol(symbol)
     replay = jsonify({'1':'1'})

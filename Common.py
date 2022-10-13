@@ -1,14 +1,40 @@
+import Common
 import Constant
 import math
 import time
 import datetime
 import csv
+import playsound
 SymbolDict = {}
 watchlist = []
 strategyDict = {}
 
-simulate = True
 simulateLog = []
+
+
+def playSound(sound):
+    try:
+        playsound.playsound(sound)
+    except Exception as e:
+        print("Error playing sound ", str(e))
+
+def getStartTime():
+    t = datetime.datetime.now()
+    timeDelta = 5
+    if t.minute % timeDelta != 0:
+        t = t + datetime.timedelta(minutes=(timeDelta - t.minute % timeDelta))
+    t = t.replace(second=0, microsecond=0)
+    # Constant.START_TIME = t
+
+    print(f"start time set to {t}")
+    return t
+
+def waitSomeTime():
+    t = datetime.datetime.now()
+    if t.minute % 5 != 0:
+        t = t + datetime.timedelta(minutes=(15 - t.minute % 15))
+    t = t.replace(second=0, microsecond=0)
+    time.sleep((t - datetime.datetime.now()).total_seconds())
 
 def LogDataReceived(msg):
     Constant.LOGGER.dataReceived(msg)
@@ -43,6 +69,49 @@ def getExpiryDate(date:datetime.date):
         return Constant.EXPIRY_DATES[date.month]
     else:
         return Constant.EXPIRY_DATES[date.month+1 if date.month+1 < 12 else 1]
+
+def getOptionForStock(symbol,strikePrice,option):
+    expiryDate = getExpiryDate(datetime.datetime.now().date())
+    with open('instruments.csv') as csvfile:
+        fileReader = csv.DictReader(csvfile)
+        for row in fileReader:
+            if row['assettype'] == "OPTSTK":
+                try:
+                    d = datetime.datetime.strptime(row['expiry'], "%d/%b/%y")
+                    #     print(f" strike price {row['strikeprice']}  type {row['optiontype']}")
+                    if row['symbolname'] == symbol and float(row['strikeprice']) == strikePrice and row['optiontype'] == option and d.date() == expiryDate:
+                        return {'exchangetoken': row['exchangetoken'], 'tradingsymbol': row['tradingsymbol'], 'lotsize': row['lotsize']}
+                except Exception:
+
+                    pass
+
+def getOptionForIndex(symbol,strikePrice,option):
+    daysToAdd = 0
+    if datetime.datetime.now().weekday() == 0:
+        daysToAdd = 3
+    elif datetime.datetime.now().weekday() == 1:
+        daysToAdd = 2
+    elif datetime.datetime.now().weekday() == 2:
+        daysToAdd = 1
+    elif datetime.datetime.now().weekday() == 3:
+        daysToAdd = 7
+    elif datetime.datetime.now().weekday() == 4:
+        daysToAdd = 6
+    expiryDate = datetime.datetime.now(
+    ) + datetime.timedelta(days=daysToAdd)  # 4 for friday
+    with open('instruments.csv') as csvfile:
+        fileReader = csv.DictReader(csvfile)
+        for row in fileReader:
+            if row['assettype'] == "OPTIDX":
+                try:
+                    d = datetime.datetime.strptime(row['expiry'], "%d/%b/%y")
+                    if row['symbolname'] == symbol and float(row['strikeprice']) == strikePrice and row[
+                        'optiontype'] == option and d.date() == expiryDate.date():
+                        return {'exchangetoken': row['exchangetoken'], 'tradingsymbol': row['tradingsymbol'],
+                                'lotsize': row['lotsize']}
+                except Exception:
+                    pass
+
 
 def getSymbolExchangeCodeForStock(symbol,strikePrice,option,expiryDate):
     with open('instruments.csv') as csvfile:
@@ -129,6 +198,8 @@ def getSymbolByTradingSymbol(tradingSymbol):
             return SymbolDict[s]
 
 
+
+
 class Trade:
     def __init__(self, symbol):
         self.status = Constant.TRADE_NOT_STARTED
@@ -151,13 +222,16 @@ class Trade:
         self.startDate = None
         self.buyDate = None
         self.exitDate = None
+        self.timeOutDate = None
+        self.simulate = False
+        self.startTime = Common.getStartTime()
+        self.quantity = 1
 
     def serialize(self):
         return {'status': self.status, 'entryPrice': self.entryPrice, 'entryTime': self.entryTime,
                 'exitPrice': self.exitPrice, 'exitTime': self.exitTime, 'buyTriggerCall': self.buyTriggerCall, 'buyTriggerPut': self.buyTriggerPut,
                 'stopLoss': self.stopLoss, 'takeProfit': self.takeProfit, 'ID': self.ID, 'strategyName': self.strategyName,
-                'gain': self.gain,"startDate":self.startDate,"buyDate":self.buyDate,"exitDate":self.exitDate}
-
+                'gain': self.gain,"startDate":self.startDate,"buyDate":self.buyDate,"exitDate":self.exitDate,"timeOutDate":self.timeOutDate}
 
 
 

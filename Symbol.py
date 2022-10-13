@@ -9,8 +9,11 @@ import DBHelper
 from strategy import GannAnalysis, MACrossover
 import playsound
 from constants.intraday_interval import IntradayIntervalEnum
+from constants.order_type import OrderTypeEnum
+from constants.exchange import ExchangeEnum
 import json
-
+import os
+import storage
 # playsound.playsound("purchase.mp3")
 
 
@@ -27,7 +30,6 @@ class Symbol:
         self.tradeList = []
         self.exchangeType = 'E'
         self.data = {}
-        self.strategy = []
         self.lastTradedPrice = 0
         self.tempCandleData = []
         self.high = -1
@@ -39,6 +41,14 @@ class Symbol:
         self.assetType = ''
         self.optionSymbol = ''
         self.exchange = ''
+        if not os.path.isfile(f"storage/symbol/{symbolName}.json"):
+            with open(f"storage/symbol/{symbolName}.json", 'w') as f:
+                print("Storage file not Exist creating ")
+                json.dump({'symbolName':self.symbolName},f)
+
+
+
+
 
     # def __init__(self, symbolName, tradingSymbol, exchangeToken, riskfactor=1):
     #     self.top = None
@@ -85,13 +95,12 @@ class Symbol:
                 csvwriter.writerow(row)
 
     def setStrategy(self, strategy,params=None,historicalData =None):
-        self.strategy.append(strategy)
+        storage.setSymbolInfo(self.symbolName,strategy,json.dumps(params))
         trade = Common.Trade(self)
         trade.strategyName = strategy
-        # trade.strategy = Common.strategyDict[strategy]
+        trade.quantity = params.get(Constant.PARAMETER_Quantity, self.tradeList[-1].quantity if len(self.tradeList)>0 else 1)
         if strategy == Constant.STRATEGY_GANN_ANALYSIS:
-            s = GannAnalysis(self.OnStrategyEvent, trade)
-            trade.strategy = GannAnalysis(self.OnStrategyEvent, trade,params=params)
+            trade.strategy = GannAnalysis(self.OnStrategyEvent, trade,candleFrequency = 3*60,params=params)
         elif strategy == Constant.STRATEGY_MA_CROSSOVER_UP:
 
             trade.strategy = MACrossover(self.OnStrategyEvent, trade, params=params)
@@ -117,13 +126,9 @@ class Symbol:
                     trade.strategy.addNewTick(c)
                 print("Indicators calculated for ", self.symbolName)
             else:
-                trade.strategy.tickData = list(params)
+                trade.strategy.tickData = list(params[Constant.PARAMETER_TICK_DATA])
                 trade.strategy.topIndex = len(trade.strategy.tickData)-1
-                # trade.strategy.exportCSV("indicators",list(trade.strategy.tickData[50].info.keys()))
 
-
-            # s = MACrossover(self.OnStrategyEvent, trade)
-            # trade.strategy = MACrossover(self.OnStrategyEvent, trade,params=params)
         print("Strategy set to ", strategy," for ",self.symbolName)
         self.tradeList.append(trade)
         return trade
@@ -132,7 +137,7 @@ class Symbol:
         self.lastTradedPrice = lastTradedPrice
         # self.createCandle(lastTradedPrice, volume)
         for t in self.tradeList:
-            if t.status != Constant.TRADE_COMPLETED:
+            if not (t.status == Constant.TRADE_COMPLETED or t.status == Constant.TRADE_TIMED_OUT):
                 t.strategy.update(t, lastTradedPrice, volume)
 
     def onCandleComplete(self, data):
@@ -145,44 +150,51 @@ class Symbol:
         if event == Constant.EVENT_CANDLE_CREATED:
             self.onCandleComplete(params)
         if event == Constant.EVENT_TRADE_COMPLETED or event == Constant.EVENT_TRADE_TIMEOUT:
-            self.setStrategy(strategy.trade.strategyName,params=params)
+            self.setStrategy(strategy.trade.strategyName,params=params).simulate = self.tradeList[-1].simulate
+            try:
+                storage.setSymbolInfo(self.symbolName,strategy.trade.ID,json.dumps(strategy.trade.serialize()))
+            except Exception as e:
+                print(f"Error saving trade Info {self.symbolName}")
 
     def exitTrade(self, ID):
         for t in self.tradeList:
             if t.ID == ID:
                 t.status = Constant.TRADE_FORCE_EXIT
+                t.strategy.exitStrategy(t,self.lastTradedPrice)
                 print("Exiting trade ", t.ID, " for symbol ", self.name)
 
-    def buy(self, tradingSymbol, exchangeToken, exchange, orderType, quantity, limitPrice=0):
+    def buy(self, tradingSymbol, exchangeToken,quantity, limitPrice=0,exchange = ExchangeEnum.NSE ):
         try:
-            r = API.placeOrder(tradingSymbol, exchange, orderType,
-                               quantity, exchangeToken, limitPrice)
+            r = API.placeOrder(tradingSymbol,  exchange, OrderTypeEnum.MARKET,
+                               int(quantity), exchangeToken, limitPrice)
             print("Purchase Completed")
             Common.LogAction(
-                f"PurchaseCompleted,{tradingSymbol},{exchangeToken},{exchange},{orderType},{limitPrice},{r}")
-        except:
-            print("Error Buying")
-        try:
-            playsound.playsound("purchase.mp3")
+                f"PurchaseCompleted,{tradingSymbol},{exchangeToken},{exchange},{OrderTypeEnum.MARKET},{limitPrice},{quantity},{r}")
+            Common.playSound("purchase.wav")
+            return True
         except Exception as e:
-            print("Error playing sound ", str(e))
+            print("Error Buying")
+            print(str(e))
+            Common.LogAction(
+                f"PurchaseFailed,{tradingSymbol},{exchangeToken},{exchange},{OrderTypeEnum.MARKET},{limitPrice}")
+            return False
 
-    def sell(self, tradingSymbol, exchangeToken, exchange, orderType, quantity, limitPrice=0):
-        if Common.simulate:
-            return
+
+    def sell(self, tradingSymbol, exchangeToken, quantity, limitPrice=0,exchange = ExchangeEnum.NSE):
         try:
-            r = API.sellPosition(tradingSymbol, exchange, orderType,
-                                 quantity, exchangeToken, limitPrice)
+            r = API.sellPosition(tradingSymbol, exchange, OrderTypeEnum.MARKET,
+                                 int(quantity), exchangeToken, limitPrice)
             print("sell Completed")
             Common.LogAction(
-                f"SellCompleted,{tradingSymbol},{exchangeToken},{exchange},{orderType},{limitPrice},{r}")
+                f"SellCompleted,{tradingSymbol},{exchangeToken},{exchange},{OrderTypeEnum.MARKET},{limitPrice},{quantity},{r}")
             print(r)
+            Common.playSound("sell.wav")
+            return True
         except Exception as e:
             print("Error selling ", str(e))
-        try:
-            playsound.playsound("sell.mp3")
-        except Exception as e:
-            print("Error playing sound ", str(e))
+            return False
+
+
 
     def gethHistoricalData(self, timeInterval, tillDateYear, tillDateMonth, tillDateDay):
         response = API.getHistoricalData(timeInterval, self.assetType, self.exchangeToken, self.exchange,

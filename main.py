@@ -14,35 +14,33 @@ import flaskApp
 
 
 def init():
-    API.init()
-    strategy.init()
-    DBHelper.init()
+    # DBHelper.init()
     execute.init()
 
 
 def fetchAndAnalyseDataForEquityAndIndex():
+    API.init()
+    # waitSomeTime()
     print("Fetch Started")
     init()
-    if Common.simulate:
-        API.initLocalFile(execute.onNewDataLocal)
-    else:
-        waitSomeTime()
-        API.initLiveData(execute.onNewData)
-    exit()
 
-
+    API.initLiveData(execute.onNewData)
 def waitSomeTime():
-    t = datetime.datetime.now()
-    if t.minute % 15 != 0:
-        t = t + datetime.timedelta(minutes=(15 - t.minute % 15))
-    t = t.replace(second=0, microsecond=0)
-    startTime = t
+    startTime = datetime.datetime.now()
+    timeDelta = 5
+    if startTime.minute % timeDelta != 0:
+        startTime = startTime + datetime.timedelta(minutes=(timeDelta - startTime.minute %timeDelta))
+    else:
+        return
+    startTime = startTime.replace(second=0, microsecond=0)
     timeToWait = startTime - datetime.datetime.now()
     print(f"wait for {timeToWait.seconds}  seconds")
     print(f"start time set to {startTime}")
 
     time.sleep(timeToWait.seconds)
     print(f"continue run {datetime.datetime.now()}")
+
+
 
 
 
@@ -56,10 +54,10 @@ print("start")
 
 def main():
     try:
-        # print("_______________________________________________")
-        # print("Starting Flask")
-        # print("_______________________________________________")
-        # thread.start_new_thread(flaskApp.startFlask, ())
+        print("_______________________________________________")
+        print("Starting Flask")
+        print("_______________________________________________")
+        thread.start_new_thread(flaskApp.startFlask, ())
 
         print("_______________________________________________")
         print("Fetch Data")

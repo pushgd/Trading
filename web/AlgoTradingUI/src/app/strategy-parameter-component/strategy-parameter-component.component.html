@@ -1,8 +1,8 @@
-<table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+<table mat-table [dataSource]="parameters" class="mat-elevation-z8">
 
     <ng-container matColumnDef="table-position">
         <th mat-header-cell *matHeaderCellDef> No. </th>
-        <td mat-cell *matCellDef="let element"> {{element.pos}} </td>
+        <td mat-cell *matCellDef="let element"> {{element.index}} </td>
     </ng-container>
 
     <ng-container matColumnDef="table-parameter">
@@ -12,12 +12,9 @@
     <ng-container matColumnDef="table-input">
         <th mat-header-cell *matHeaderCellDef>value</th>
         <td mat-cell *matCellDef="let element">
-            <input matInput [(ngModel)]="element.value" *ngIf="element.type == 'text'" type="text"
-                (change)="parameterUpdate(element)">
-            <input matInput [(ngModel)]="element.value" *ngIf="element.type == 'date'" type="date"
-                (change)="parameterUpdate(element)">
-            <input matInput [(ngModel)]="element.value" *ngIf="element.type == 'number'" type="number"
-                (change)="parameterUpdate(element)">
+            <input matInput [(ngModel)]="element.value" *ngIf="element.type == 'text'" type="text">
+            <input matInput [(ngModel)]="element.value" *ngIf="element.type == 'date'" type="date">
+            <input matInput [(ngModel)]="element.value" *ngIf="element.type == 'number'" type="number">
         </td>
     </ng-container>
     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>

@@ -39,10 +39,12 @@
                     <mat-date-range-picker #picker></mat-date-range-picker>
                 </mat-form-field>
                 <div style="display: flex;">
-                    <app-strategy-simulate-parameters-component style="width: 70%;">
+                    <app-strategy-simulate-parameters-component style="width: 70%;" [parameters]="s.parameters">
                     </app-strategy-simulate-parameters-component>
-                    <textarea disabled="true" style="width: 30%;" [(ngModel)]="simulateLogs"></textarea>
-                    <button [cdkCopyToClipboard]="simulateLogs">copy</button>
+                    <textarea disabled="true" style="width: 80%;" [(ngModel)]="simulateLogs"></textarea>
+                    <button mat-icon-button (click)="copyToClipBoard()">
+                        <mat-icon>content_copy</mat-icon>
+                    </button>
                 </div>
                 <div style="align-items: center;">
                     <button mat-raised-button style="margin: 10px; width: 100%;" color="accent"

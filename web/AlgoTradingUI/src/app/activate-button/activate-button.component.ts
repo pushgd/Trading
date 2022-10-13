@@ -13,7 +13,6 @@ export class ActivateButtonComponent implements OnInit {
   constructor() { }
 
   ngOnInit(): void {
-    console.log(" ActiveButton Init ");
   }
 
   onClick(): void {

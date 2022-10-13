@@ -28,7 +28,8 @@
                         some data here
                     </mat-panel-description>
                 </mat-expansion-panel-header>
-                <app-strategy-parameter-component style="width: 90%;"></app-strategy-parameter-component>
+                <app-strategy-parameter-component style="width: 90%;" [parameters]="s.parameters">
+                </app-strategy-parameter-component>
                 <div style="align-items: center;">
                     <button mat-raised-button style="margin: 10px; width: 100%;" color="accent"
                         (click)="saveClicked(s)">Save</button>
