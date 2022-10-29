@@ -1,0 +1,109 @@
+<mat-expansion-panel hideToggle style="margin: 5px;">
+    <mat-expansion-panel-header
+        [ngStyle]="{'background-color': currentstep != 2?currentstep == 3?info.gain>0?'#00FF00':'#FF0000':'' :(currentPrice - info.entryPrice > 0 )?'#00FF00':'#FF0000'}">
+        <mat-panel-title>
+            <mat-card style="background-color: #464646;">{{info.ID}}</mat-card>
+            <mat-card>{{info.strategyName}}</mat-card>
+            <mat-card style="background-color:  #464646;">{{info.status}}</mat-card>
+            <mat-card *ngIf="currentstep == 2">{{currentPrice-info.entryPrice|number:'4.0-2'}}</mat-card>
+            <mat-card *ngIf="currentstep == 3">{{info.gain|number:'4.0-2'}}</mat-card>
+        </mat-panel-title>
+        <mat-panel-description>
+
+            <button mat-raised-button style="margin:5px;" color="warn" (click)="$event.stopPropagation()">Exit</button>
+        </mat-panel-description>
+    </mat-expansion-panel-header>
+
+    <mat-stepper selectedIndex={{currentstep}}>
+        <mat-step label="Not Started" completed="false">
+
+            <div class="stepInfo" style="align-items: center;">
+                <div style="display: flex;">
+                    <mat-card style="width: 150px;background-color: #494949;">Entry Time</mat-card>
+                    <mat-card style="width: 150px;background-color: #494949;">{{info.startDate}}</mat-card>
+                    <!-- <mat-card style="width: 150px;">{{getDate(info.entryTime)}}</mat-card> -->
+                </div>
+                <div style="display: flex;">
+                    <mat-card style="width: 150px;">Entry Price</mat-card>
+                    <mat-card style="width: 150px;">{{info.entryPrice}}</mat-card>
+                </div>
+                <div style="display: flex;">
+                    <mat-card style="width: 150px;background-color: #494949;">TakeProfit</mat-card>
+                    <mat-card style="width: 150px;background-color: #494949;">{{info.takeProfit}}</mat-card>
+                </div>
+                <div style="display: flex;">
+                    <mat-card style="width: 150px;">StopLoss</mat-card>
+                    <mat-card style="width: 150px;">{{info.stopLoss}}</mat-card>
+                </div>
+            </div>
+
+        </mat-step>
+        <mat-step label="Looking for entry" completed="false">
+            <div style="align-items: center;">
+                <div style="display: flex;">
+                    <mat-card style="width: 150px;background-color: #494949;">Entry Time</mat-card>
+                    <mat-card style="width: 150px;background-color: #494949;">{{info.startDate}}</mat-card>
+                    <!-- <mat-card style="width: 150px;">{{getDate(info.entryTime)}}</mat-card> -->
+                </div>
+                <div style="display: flex;">
+                    <mat-card style="width: 150px;">Buy Trigger Call</mat-card>
+                    <mat-card style="width: 150px;">{{info.buyTriggerCall}}</mat-card>
+                </div>
+                <div style="display: flex;">
+                    <mat-card style="width: 150px;background-color: #494949;">Buy Trigger Put</mat-card>
+                    <mat-card style="width: 150px;background-color: #494949;">{{info.buyTriggerPut}}</mat-card>
+                </div>
+            </div>
+        </mat-step>
+        <mat-step label="Entered" completed="false">
+
+            <div style="align-items: center;">
+                <div style="display: flex;">
+                    <mat-card style="width: 150px;background-color: #494949;">Entry Time</mat-card>
+                    <mat-card style="width: 150px;background-color: #494949;">{{info.buyDate}}</mat-card>
+                    <!-- <mat-card style="width: 150px;">{{getDate(info.entryTime)}}</mat-card> -->
+                </div>
+                <div style="display: flex;">
+                    <mat-card style="width: 150px;">Entry Price</mat-card>
+                    <mat-card style="width: 150px;">{{info.entryPrice}}</mat-card>
+                </div>
+                <div style="display: flex;">
+                    <mat-card style="width: 150px;background-color: #494949;">TakeProfit</mat-card>
+                    <mat-card style="width: 150px;background-color: #494949;">{{info.takeProfit}}</mat-card>
+                </div>
+                <div style="display: flex;">
+                    <mat-card style="width: 150px;">StopLoss</mat-card>
+                    <mat-card style="width: 150px;">{{info.stopLoss}}</mat-card>
+                </div>
+            </div>
+
+        </mat-step>
+        <mat-step label="Completed" completed="false">
+
+            <div style="align-items: center;">
+                <div style="display: flex;">
+                    <mat-card style="width: 150px;background-color: #494949;">Exit Time</mat-card>
+                    <mat-card style="width: 150px;background-color: #494949;">{{info.exitDate}}</mat-card>
+                    <!-- <mat-card style="width: 150px;">{{getDate(info.entryTime)}}</mat-card> -->
+                </div>
+                <div style="display: flex;">
+                    <mat-card style="width: 150px;">Entry Price</mat-card>
+                    <mat-card style="width: 150px;">{{info.entryPrice}}</mat-card>
+                </div>
+                <div style="display: flex;">
+                    <mat-card style="width: 150px;background-color: #494949;">Exit Price</mat-card>
+                    <mat-card style="width: 150px;background-color: #494949;">{{info.exitPrice}}</mat-card>
+                </div>
+                <div style="display: flex;">
+                    <mat-card style="width: 150px;">PNL</mat-card>
+                    <mat-card style="width: 150px;">{{info.gain}}</mat-card>
+                </div>
+                <div style="display: flex;">
+                    <mat-card style="width: 150px;background-color: #494949;">Status</mat-card>
+                    <mat-card style="background-color: #494949;">{{info.status}}</mat-card>
+                </div>
+            </div>
+
+        </mat-step>
+    </mat-stepper>
+</mat-expansion-panel>

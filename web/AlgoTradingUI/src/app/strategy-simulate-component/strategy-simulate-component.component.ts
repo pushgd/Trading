@@ -1,6 +1,6 @@
 import { Component, OnInit, Input, ViewChild } from '@angular/core';
 import { StrategySimulateParametersComponentComponent } from '../strategy-simulate-parameters-component/strategy-simulate-parameters-component.component';
-import { strategy, parameter } from '../common'
+import { strategy, parameter, symbolInfo } from '../common'
 import { Clipboard } from '@angular/cdk/clipboard';
 import { BackendServiceService } from '../backend-service.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -64,7 +64,7 @@ export class StrategySimulateComponentComponent implements OnInit {
       }
       this.strategyList?.push(s);
     }
-    console.log(this.strategyList)
+    // console.log(this.strategyList)
   }
 
 
@@ -79,13 +79,13 @@ export class StrategySimulateComponentComponent implements OnInit {
       let t = response[i];
       console.log(response[i]);
       this.simulateLogs += "\n";
-      this.simulateLogs += "-----------------------\n";
+      this.simulateLogs += `-----------------------${t.status} \n`;
       this.simulateLogs += `Trade Identified => ${t.startDate} BuyTriggerCall =>${t.buyTriggerCall} BuyTriggerPut =>${t.buyTriggerPut} \n`;
-      if (t.timeOutDate == undefined) {
+      if (t.status != 'TRADE_STATUS.TIMED_OUT') {
         this.simulateLogs += `Buy => ${t.buyDate} EntryPrice => ${t.entryPrice} StopLoss => ${t.stopLoss} TakeProfit => ${t.takeProfit} \n`;
         this.simulateLogs += `Sell ${t.gain > 0 ? "Profit" : "Lose"} => ${t.exitDate} ExitPrice => ${t.exitPrice} Gain => ${t.gain}\n`;
       } else {
-        this.simulateLogs += `Trade timeOut => ${t.timeOutDate}\n`;
+        this.simulateLogs += `Trade timeOut => ${t.exitDate}\n`;
       }
       this.simulateLogs += "-----------------------\n";
     }

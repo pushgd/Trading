@@ -5,13 +5,16 @@ import time
 import datetime
 import csv
 import playsound
+import os
 SymbolDict = {}
 watchlist = []
 strategyDict = {}
 
 simulateLog = []
 
-
+def copyToClipboard(text):
+    command = 'echo ' + text.strip() + '| clip'
+    os.system(command)
 def playSound(sound):
     try:
         playsound.playsound(sound)
@@ -202,7 +205,7 @@ def getSymbolByTradingSymbol(tradingSymbol):
 
 class Trade:
     def __init__(self, symbol):
-        self.status = Constant.TRADE_NOT_STARTED
+        self.status = Constant.TRADE_STATUS.NOT_STARTED
         self.entryPrice = 0
         self.entryTime = 0
         self.exitPrice = 0
@@ -226,12 +229,13 @@ class Trade:
         self.simulate = False
         self.startTime = Common.getStartTime()
         self.quantity = 1
+        self.type = ""
 
     def serialize(self):
-        return {'status': self.status, 'entryPrice': self.entryPrice, 'entryTime': self.entryTime,
-                'exitPrice': self.exitPrice, 'exitTime': self.exitTime, 'buyTriggerCall': self.buyTriggerCall, 'buyTriggerPut': self.buyTriggerPut,
+        return {'status': str(self.status), 'entryPrice': self.entryPrice, 'entryTime': str(self.entryTime),
+                'exitPrice': self.exitPrice, 'exitTime': str(self.exitTime), 'buyTriggerCall': self.buyTriggerCall, 'buyTriggerPut': self.buyTriggerPut,
                 'stopLoss': self.stopLoss, 'takeProfit': self.takeProfit, 'ID': self.ID, 'strategyName': self.strategyName,
-                'gain': self.gain,"startDate":self.startDate,"buyDate":self.buyDate,"exitDate":self.exitDate,"timeOutDate":self.timeOutDate}
+                'gain': self.gain,"startDate":str(self.startDate),"buyDate":str(self.buyDate),"exitDate":str(self.exitDate),"timeOutDate":str(self.timeOutDate),"quantity":self.quantity,"type":self.type}
 
 
 

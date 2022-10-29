@@ -1,13 +1,13 @@
-
+import json
 from random import randint, random
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+
+import API
 import Constant
 import Common
 import execute
-
-
-
+import storage
 
 app = Flask(__name__)
 
@@ -29,7 +29,12 @@ def getData(symbol):
 def getAllSymbols():
     symbolList = []
     for s in execute.symbolsList:
-       symbolList.append( {"symbolName": s.symbolName,"tradingSymbol" : s.tradingSymbol,"exchangeToken" : s.exchangeToken})
+        info = {"symbolName": s.symbolName,"tradingSymbol" : s.tradingSymbol,"exchangeToken" : s.exchangeToken}
+        if storage.isSymbolInfoExist(s.symbolName,Constant.STRATEGY_GANN_ANALYSIS):
+            info[Constant.STRATEGY_GANN_ANALYSIS] = storage.getSymbolInfo(s.symbolName,Constant.STRATEGY_GANN_ANALYSIS)
+        if storage.isSymbolInfoExist(s.symbolName, Constant.STRATEGY_MA_CROSSOVER_UP):
+           info[Constant.STRATEGY_MA_CROSSOVER_UP] = storage.getSymbolInfo(s.symbolName, Constant.STRATEGY_MA_CROSSOVER_UP)
+        symbolList.append(info)
 
     replay = jsonify(symbolList)
     replay.headers.add('Access-Control-Allow-Origin', '*')
@@ -51,7 +56,7 @@ def getAllStrategy():
 def getCurrentPriceAll():
     replay = {}
     for key in Common.SymbolDict.keys():
-        replay[Common.SymbolDict[key].tradingSymbol]= Common.SymbolDict[key].lastTradedPrice
+        replay[Common.SymbolDict[key].tradingSymbol]= {'currentPrice':Common.SymbolDict[key].lastTradedPrice,'lastUpdate':str(Common.SymbolDict[key].lastUpdatedTime)}
 
     replay = jsonify(replay)
     replay.headers.add('Access-Control-Allow-Origin', '*')
@@ -94,9 +99,23 @@ def getCandle(symbol,index):
 
 @app.route("/getTrades/<symbol>", methods=['GET'])
 def getTrade(symbol):
-    replay = {}
-    for trade in Common.SymbolDict[symbol].tradeList:
-        replay[len(replay)] = trade.serialize()
+    s = Common.getSymbolBySymbolName(symbol)
+    replay = []
+    for trade in s.tradeList:
+
+        replay.append(trade.serialize())
+    replay = jsonify(replay)
+    replay.headers.add('Access-Control-Allow-Origin', '*')
+    return replay
+
+
+@app.route("/getActiveTrades/<symbol>", methods=['GET'])
+def getActiveTrades(symbol):
+    s = Common.getSymbolBySymbolName(symbol)
+    replay = []
+    for trade in s.tradeList:
+        if not (trade.status == Constant.TRADE_STATUS.COMPLETED or trade.status == Constant.TRADE_STATUS.TIMED_OUT):
+            replay.append(trade.serialize())
     replay = jsonify(replay)
     replay.headers.add('Access-Control-Allow-Origin', '*')
     return replay
@@ -119,10 +138,26 @@ def simulate1(symbol):
 @app.route("/setStrategy/<symbol>", methods=['POST'])
 def setStrategy(symbol):
     strategy = request.json['strategy']
-    parameters = {'Quantity':int(request.json['Quantity'])}
+
+    parameters = {}
+    keys = list(request.json.keys())[1:]
+    for k in keys:
+        parameters[k]= request.json[k]
     print(symbol+" "+str(strategy)+" "+str(parameters))
-    Common.getSymbolBySymbolName(symbol).setStrategy(strategy,parameters)
+    s = Common.getSymbolBySymbolName(symbol)
+    storage.setSymbolInfo(s.symbolName,strategy,parameters)
+    s.setStrategy(strategy,parameters)
     replay = jsonify(str(strategy)+" "+str(parameters))
+    replay.headers.add('Access-Control-Allow-Origin', '*')
+    return replay
+@app.route("/removeStrategy/<symbol>", methods=['POST'])
+def removeStrategy(symbol):
+    strategy = request.json['strategy']
+
+    s = Common.getSymbolBySymbolName(symbol)
+    storage.removeSymbolInfo(s.symbolName,strategy)
+    # s.setStrategy(strategy)
+    replay = jsonify(str(strategy)+" removed")
     replay.headers.add('Access-Control-Allow-Origin', '*')
     return replay
 
@@ -144,5 +179,18 @@ def simulate(symbol):
 def deactivateSymbol(symbol):
     execute.deactivateSymbol(symbol)
     replay = jsonify({'1':'1'})
+    replay.headers.add('Access-Control-Allow-Origin', '*')
+    return replay
+
+@app.route("/setReqID", methods=['GET'])
+def setID():
+    replay = "reply"
+    try:
+        request_id = request.args.get("request_id")
+        API.setReqID(request_id)
+        print("requestID set to ",API.reqId)
+        replay = jsonify("Completed")
+    except Exception as e:
+        replay = jsonify(str(e))
     replay.headers.add('Access-Control-Allow-Origin', '*')
     return replay

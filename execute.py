@@ -7,11 +7,13 @@ import datetime
 import sys
 import itertools
 import csv
+import os
+
 
 from constants.asset_type import AssetTypeEnum
 from constants.chart_exchange import ChartExchangeEnum
 from constants.intraday_interval import IntradayIntervalEnum
-from constants.exchange import ExchangeEnum
+
 
 spinner = itertools.cycle(['*', '#'])
 lastStrategyCheckTime = 0
@@ -25,7 +27,7 @@ symbolsList = []
 symbolsIDList = []
 symbolMapping = {}
 strategyList = []
-
+lastUpdateTime=datetime.datetime.now()
 
 def init():
     with open('symbolConfig.csv') as csvfile:
@@ -61,10 +63,10 @@ def init():
                     elif row['assettype'] == 'INDEX':
                         symbol.assetType = AssetTypeEnum.INDEX
                     Common.SymbolDict[symbol.exchangeToken] = symbol
-                    symbol.setStrategy(Constant.STRATEGY_GANN_ANALYSIS,params={Constant.PARAMETER_Quantity:2})
+
                     # symbol.buy(symbol.tradingSymbol,
                     #            symbol.exchangeToken, symbol.quantity)
-
+                    symbol.initStrategy()
                     continue
 
     # with open('instruments.csv') as csvfile:
@@ -110,6 +112,8 @@ temp = {}
 
 
 def onNewData(message):
+    global lastUpdateTime
+    lastUpdateTime = datetime.datetime.now()
     sys.stdout.write('\b')  # erase the last written char
     sys.stdout.write(next(spinner))  # write the next character
     sys.stdout.flush()  # flush stdout buffer (actual character display)
@@ -118,9 +122,11 @@ def onNewData(message):
     #     print(message.count('response'))
     message = message.strip()
     message = message.split("\n")
+
     for m in message:
         try:
             d = json.loads(m)
+            # print(d)
         except:
             # print("error parsing")
             # # print(message)
@@ -173,7 +179,8 @@ def simulate(symbol,startDate,endDate,strategy,parames={}):
     tillDate = datetime.datetime.strptime(endDate, "%Y-%m-%d")
     tillDate2 = datetime.datetime.strptime(endDate, "%Y-%m-%d")
 
-    s =  copy.deepcopy(Common.getSymbolBySymbolName(symbol))
+    s =  Common.getSymbolBySymbolName(symbol)
+    # s =  copy.deepcopy(Common.getSymbolBySymbolName(symbol))
     s.tradeList.clear()
 
     historicalData = []

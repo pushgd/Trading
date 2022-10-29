@@ -1,0 +1,20 @@
+<mat-expansion-panel hideToggle>
+    <mat-expansion-panel-header>
+        <mat-panel-title>
+            Trade
+        </mat-panel-title>
+        <mat-panel-description>
+            <button mat-raised-button style="margin:5px;" color="accent"
+                (click)="onRefreshClicked();$event.stopPropagation()" *ngIf='!refreshing'>
+                Refresh</button>
+            <mat-spinner diameter="25" style="margin:5px;" *ngIf='refreshing'></mat-spinner>
+
+            <button mat-raised-button color="warn" (click)="$event.stopPropagation()">Exit All Trades</button>
+
+        </mat-panel-description>
+    </mat-expansion-panel-header>
+
+    <app-trade *ngFor="let trade of tradelist" [info]="trade" [symbol]="tradingSymbol"></app-trade>
+
+
+</mat-expansion-panel>

@@ -1,6 +1,7 @@
 # tick date
 import logging
 import datetime
+from enum import Enum,auto
 
 EXPIRY_DATES =[
     datetime.date(2022,1,29),
@@ -52,16 +53,23 @@ MORNING_STAR = "MORNING STAR"  # upward
 
 
 PARAMETER_TICK_DATA = 'tickData'
-PARAMETER_Quantity = 'Quantity'
+PARAMETER_QUANTITY = 'Quantity'
+PARAMETER_CANDLE_FREQUENCY = 'CandleFrequency'
 
 STRATEGY_MA_CROSSOVER_UP = "MACrossoverup"
 STRATEGY_PARAMETER_MA_CROSSOVER_UP = [
-    {"name": PARAMETER_Quantity,
-    "type":"number"}]
+    {"name": PARAMETER_QUANTITY,
+    "type":"number"},
+    {"name": PARAMETER_CANDLE_FREQUENCY,
+     "type": "number"}
+]
 STRATEGY_GANN_ANALYSIS = "GannAnalysis"
 STRATEGY_PARAMETER_GANN_ANALYSIS = [
-    {"name": "Quantity",
-    "type":"number"}]
+    {"name": PARAMETER_QUANTITY,
+    "type":"number"},
+{"name": PARAMETER_CANDLE_FREQUENCY,
+    "type":"number"}
+]
 
 
 
@@ -129,13 +137,7 @@ KEY_STRATEGY = 'Strategy'
 
 KEY_TICK_DATA = 'tickData'
 
-TRADE_LOOKING_FOR_ENTRY = 0
-TRADE_NOT_STARTED = 1
-TRADE_ENTERED = 2
-TRADE_COMPLETED = 3
-TRADE_FORCE_EXIT = 4
-TRADE_TIMED_OUT = 5
-TRADE_LOOKING_FOR_EXIT = 6
+
 
 TRADE_TYPE_PUT = "PE"
 TRADE_TYPE_CALL = "CE"
@@ -149,10 +151,20 @@ KEY_SYMBOL = 'CURRENT_SYMBOL'
 
 
 LOCAL_CANDLE_FREQUENCY = 999999999999999
+class TRADE_STATUS(Enum):
+    LOOKING_FOR_ENTRY = auto()
+    NOT_STARTED = auto()
+    ENTERED = auto()
+    COMPLETED = auto()
+    FORCE_EXIT = auto()
+    TIMED_OUT = auto()
+    LOOKING_FOR_EXIT = auto()
 
-EVENT_CANDLE_CREATED = 0
-EVENT_TRADE_COMPLETED = 1
-EVENT_TRADE_TIMEOUT = 2
+class STRATEGY_EVENT(Enum):
+    CANDLE_CREATED = auto()
+    TRADE_COMPLETED = auto()
+    TRADE_TIMEOUT = auto()
+
 
 EXIT_TIME = datetime.datetime.now().replace(hour=14,minute=45)
 START_TIME = datetime.time(hour=9, minute=30)

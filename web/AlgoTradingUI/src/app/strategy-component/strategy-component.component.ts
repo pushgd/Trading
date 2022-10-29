@@ -1,6 +1,6 @@
 import { Component, OnInit, Input, ViewChild } from '@angular/core';
 import { StrategyParameterComponentComponent } from '../strategy-parameter-component/strategy-parameter-component.component';
-import { strategy, parameter } from '../common'
+import { strategy, parameter, symbolInfo } from '../common'
 import { BackendServiceService } from '../backend-service.service';
 
 @Component({
@@ -11,7 +11,7 @@ import { BackendServiceService } from '../backend-service.service';
 export class StrategyComponentComponent implements OnInit {
 
   @Input() symbolName: string = '';
-  @Input("strategyList") strategyListInput: strategy[] = [];
+  // strategyListInput: strategy[] = [];
   @ViewChild(StrategyParameterComponentComponent) strategyParameter!: StrategyParameterComponentComponent;
   selectedStrategy: number = -1;
   strategyList: strategy[] = [];
@@ -29,6 +29,7 @@ export class StrategyComponentComponent implements OnInit {
   }
 
   public initStrategyData(strategyListInput: strategy[]): void {
+    console.log("initStrategyData");
     for (let i = 0; i < strategyListInput.length; i++) {
       let s: strategy = {
         index: strategyListInput[i].index,
@@ -54,13 +55,29 @@ export class StrategyComponentComponent implements OnInit {
 
     this.strategyList.filter(s => s.index == this.selectedStrategy)[0].inUse = true;
   }
+
+  public setStrategy(strategy: string, p: parameter[]) {
+    console.log("set strategy ", strategy, " for ", this.symbolName);
+    console.log("Parameters ", p);
+    let s = this.strategyList.filter(s => s.name == strategy)[0];
+    s.inUse = true;
+
+    for (let i = 0; i < s.parameters.length; i++) {
+      let key = s.parameters[i].name as keyof typeof p
+      s.parameters[i].value = p[key]
+      console.log(`setting parameter ${s.parameters[i].name} to ${p[key]}`)
+    }
+
+  }
+
+
+
   saveClicked(s: strategy): void {
     this.backEndService.startStrategy(this.symbolName, s.name, s.parameters)
     console.log(this.strategyParameter.getParameters().forEach((e => console.log(e.name, " ", e.value))));
   }
   removeClicked(s: strategy): void {
-
-    console.log(this.strategyParameter.getParameters())
+    this.backEndService.removeStrategy(this.symbolName, s.name)
     s.inUse = false;
   }
 }

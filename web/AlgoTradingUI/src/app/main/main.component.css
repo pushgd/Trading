@@ -13,6 +13,7 @@ table {
     width: 98%;
 }
 
+.mat-column-table {}
 
 .mat-column-table-position {
     width: 0.1%;
@@ -22,32 +23,54 @@ table {
 }
 
 .mat-column-table-name {
-    width: 10%;
+    width: 0.2%;
     border-right: 1px solid currentColor;
     padding-right: 24px;
     text-align: center;
 }
 
-.mat-column-table-strategy {
-    width: 25%;
-    border-right: 1px solid currentColor;
-    padding-right: 12px;
-    padding-left: 12px;
-    text-align: center;
-}
+
 
 .mat-column-table-activeButton {
-    width: 1%;
+    width: 0.2%;
     text-align: center;
     border-right: 1px solid currentColor;
     padding-right: 10px;
     padding-left: 10px;
 }
 
-.mat-column-table-simulate {
-    /* width: 50%; */
+.mat-column-table-strategy {
+    width: 2%;
     border-right: 1px solid currentColor;
     padding-right: 12px;
     padding-left: 12px;
     text-align: center;
+}
+
+.mat-column-table-trades {
+    width: 2%;
+    border-right: 1px solid currentColor;
+    padding-right: 12px;
+    padding-left: 12px;
+    text-align: center;
+}
+
+.mat-column-table-all-trades {
+    width: 2%;
+    border-right: 1px solid currentColor;
+    padding-right: 12px;
+    padding-left: 12px;
+    text-align: center;
+}
+
+.mat-column-table-simulate {
+    width: 2%;
+    border-right: 1px solid currentColor;
+    padding-right: 12px;
+    padding-left: 12px;
+    text-align: center;
+}
+
+.mat-card {
+    transition: background-color 1s, color 1s;
 }

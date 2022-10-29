@@ -26,4 +26,5 @@ export class StrategyParameterComponentComponent implements OnInit {
     return this.parameters;
   }
 
+
 }

@@ -18,19 +18,25 @@ export class MainComponent implements OnInit {
   @ViewChildren(StrategyComponentComponent) strategyComponent!: QueryList<StrategyComponentComponent>;
   @ViewChildren(StrategySimulateComponentComponent) strategySimulateComponent!: QueryList<StrategySimulateComponentComponent>;
 
-  displayedColumns: string[] = ["table-position", "table-name", "table-activeButton", "table-strategy", "table-simulate"];
+  // displayedColumns: string[] = ["table-position", "table-name", "table-strategy", "table-trades", "table-all-trades", "table-simulate"];
+  displayedColumns: string[] = ["table-position", "table-name", "table-strategy", "table-trades", "table-all-trades", "table-simulate"];
   symbolInfo: symbolInfo[] = [];
   dataSource = new MatTableDataSource(this.symbolInfo);
   strategyList: strategy[] = [];
+  symbolStrategyData: any[] = [];
   simulateColumnWidth = 25;
   strategyColumnWidth = 25;
+  valueIncreased: boolean = false;
   constructor(private backEndService: BackendServiceService) {
-    backEndService.getAllSymbols()
-      .then(response => { this.getSymbolCallback(response) });
 
-    backEndService.getAllStrategies()
+
+    this.backEndService.getAllSymbols()
+      .then(response => { this.getSymbolCallback(response) });
+    this.backEndService.getAllStrategies()
       .then(response => { this.getStrategyCallback(response) });
-    setInterval(() => backEndService.getCurrentPrice().then(response => { this.onCurrentPricecallback(response) }), 5000);
+
+
+    setInterval(() => this.backEndService.getCurrentPrice().then(response => { this.onCurrentPricecallback(response) }), 5000);
   }
 
   getSymbolCallback(response: any) {
@@ -40,12 +46,20 @@ export class MainComponent implements OnInit {
         name: response[i].symbolName,
         tradingSymbol: response[i].tradingSymbol,
         exchangeCode: response[i].exchangeToken,
-        currentPrice: 0
+        currentPrice: 0,
+        lastPrice: 0,
       }
       this.symbolInfo?.push(s);
+      let t = {
+        name: response[i].symbolName,
+        GannAnalysis: response[i].GannAnalysis,
+        MACrossoverup: response[i].MACrossoverup
+      }
+      this.symbolStrategyData.push(t);
     }
     // this.dataSource = response
     this.matTable?.renderRows();
+
   }
 
   getStrategyCallback(response: any) {
@@ -72,15 +86,31 @@ export class MainComponent implements OnInit {
 
     this.strategyComponent.forEach((sc) => {
       sc.initStrategyData(this.strategyList);
-    })
+    });
     this.strategySimulateComponent.forEach((sc) => {
       sc.initStrategyData(this.strategyList);
-    })
+    });
+
+    for (let i = 0; i < this.symbolStrategyData.length; i++) {
+      this.strategyComponent.forEach((sc) => {
+        if (sc.symbolName == this.symbolStrategyData[i].name) {
+          if (this.symbolStrategyData[i].GannAnalysis)
+            sc.setStrategy("GannAnalysis", this.symbolStrategyData[i].GannAnalysis)
+
+          if (this.symbolStrategyData[i].MACrossoverup)
+            sc.setStrategy("MACrossoverup", this.symbolStrategyData[i].MACrossoverup)
+
+        }
+      });
+    }
+
   }
 
   onCurrentPricecallback(response: any) {
     for (let i = 0; i < this.symbolInfo.length; i++) {
-      this.symbolInfo[i].currentPrice = response[this.symbolInfo[i].tradingSymbol]
+      this.symbolInfo[i].lastPrice = this.symbolInfo[i].currentPrice
+      this.symbolInfo[i].currentPrice = response[this.symbolInfo[i].tradingSymbol].currentPrice;
+
     }
 
     console.log(response);
@@ -89,9 +119,17 @@ export class MainComponent implements OnInit {
   ngOnInit(): void {
 
   }
-  sortData(sort: Sort) {
-    console.log(sort);
+  showTradeToggle(isChecked: any) {
+    // if (isChecked) {
+    //   this.displayedColumns.splice(this.displayedColumns.indexOf("table-all-trades"), 1);
+    // } else {
+    //   this.displayedColumns.push("table-all-trades");
+    // }
+
+
   }
+
+
   simulateHeadClicked(): void {
     console.log("Simulate HEad clicked");
     if (this.simulateColumnWidth == 0) {

@@ -1,39 +1,74 @@
 <h2>Title here</h2>
 <mat-divider></mat-divider>
 <h4>Symbol Table</h4>
-<table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+<mat-slide-toggle #showStrategy [checked]="true" style="border: solid 2px white;padding: 3px;margin: 2px;">Show Strategy
+</mat-slide-toggle>
+<mat-slide-toggle #showActiveTrade [checked]="true" style="border: solid 2px white;padding: 3px;margin: 2px;">Show
+    Active Trades
+</mat-slide-toggle>
+<mat-slide-toggle #showTrade [checked]="true" style="border: solid 2px white;padding: 3px;margin: 2px;">Show All Trades
+</mat-slide-toggle>
+<mat-slide-toggle #showSimulate [checked]="true" style="border: solid 2px white;padding: 3px;margin: 2px;">Show Simulate
+</mat-slide-toggle>
+<table mat-table [dataSource]=" dataSource" class="mat-elevation-z8">
 
     <ng-container matColumnDef="table-position">
         <th mat-header-cell *matHeaderCellDef> No. </th>
-        <td mat-cell *matCellDef="let element"> {{element.index}} </td>
+        <td mat-cell *matCellDef="let element"> {{element.index+1}} </td>
     </ng-container>
 
     <ng-container matColumnDef="table-name">
         <th mat-header-cell *matHeaderCellDef> Name </th>
-        <td mat-cell *matCellDef="let element"> {{element.name}} <br>{{element.currentPrice}} </td>
+        <td mat-cell *matCellDef="let element">
+            <mat-card style="padding-top: 5px;margin: 5px;">{{element.name}}</mat-card>
+            <mat-card [ngStyle]="{'background-color':element.currentPrice > element.lastPrice?'#00FF00':'#FF0000',
+            'color':element.currentPrice > element.lastPrice?'#000000':'#FFFFFF'
+            }" style="padding-top: 5px;margin: 5px;">
+                {{element.currentPrice}}</mat-card>
+        </td>
     </ng-container>
-    <ng-container matColumnDef="table-activeButton">
+    <!-- <ng-container matColumnDef="table-activeButton">
         <th mat-header-cell *matHeaderCellDef> Activate </th>
         <td mat-cell *matCellDef="let element">
             <app-activate-button symbolName={{element.name}}></app-activate-button>
         </td>
-    </ng-container>
+    </ng-container> -->
     <ng-container matColumnDef="table-strategy">
-        <th mat-header-cell *matHeaderCellDef (click)="strategyHeadClicked()">
+        <th mat-header-cell *matHeaderCellDef [hidden]="!showStrategy.checked">
             Strategy </th>
-        <td mat-cell *matCellDef="let element">
+        <td mat-cell *matCellDef="let element" [hidden]="!showStrategy.checked">
             <app-strategy-component symbolName={{element.name}}></app-strategy-component>
         </td>
     </ng-container>
+    <ng-container matColumnDef="table-trades">
+        <th mat-header-cell *matHeaderCellDef [hidden]="!showActiveTrade.checked">
+            Active Trades </th>
+        <td mat-cell *matCellDef="let element" [hidden]="!showActiveTrade.checked">
+            <app-trade-container [symbol]="element.name" [tradingSymbol]="element.tradingSymbol"> </app-trade-container>
+            <!-- <app-strategy-simulate-component symbolName={{element.name}}>
+            </app-strategy-simulate-component> -->
+        </td>
+    </ng-container>
+    <ng-container matColumnDef="table-all-trades">
+        <th mat-header-cell *matHeaderCellDef [hidden]='!showTrade.checked'>
+            All Trades </th>
+        <td mat-cell *matCellDef="let element" [hidden]='!showTrade.checked'>
+            <app-trade-container [symbol]="element.name" [tradingSymbol]="element.tradingSymbol" [getAllTrades]="true">
+            </app-trade-container>
+            <!-- <app-strategy-simulate-component symbolName={{element.name}}>
+                </app-strategy-simulate-component> -->
+        </td>
+    </ng-container>
     <ng-container matColumnDef="table-simulate">
-        <th mat-header-cell *matHeaderCellDef (click)="simulateHeadClicked()">
+        <th mat-header-cell *matHeaderCellDef [hidden]='!showSimulate.checked'>
             Simulate </th>
-        <td mat-cell *matCellDef="let element">
+        <td mat-cell *matCellDef="let element" [hidden]='!showSimulate.checked'>
             <app-strategy-simulate-component symbolName={{element.name}}>
             </app-strategy-simulate-component>
         </td>
     </ng-container>
     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
     <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
 
 </table>

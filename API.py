@@ -1,4 +1,6 @@
 import os
+import threading
+import webbrowser
 
 from EdelweissAPIConnect import EdelweissAPIConnect
 from EdelweissAPIConnect.feed import Feed
@@ -14,9 +16,12 @@ from constants.duration import DurationEnum
 from constants.product_code import ProductCodeENum
 import zipfile
 
+import main
+import storage
+
 APIKey = "QDFbQZIsst9A6A"
 AppSecret = "62eM4#YaL+kX5!Rt"
-reqId = "363863b500a19624"
+reqId = "1"
 accid = "45055736"
 userID = "45055736"
 
@@ -25,25 +30,40 @@ f = None
 
 
 def init():
-    global client
-    client = EdelweissAPIConnect.EdelweissAPIConnect(APIKey, AppSecret, reqId, True)
+    global client,reqId
+    try:
+        client = EdelweissAPIConnect.EdelweissAPIConnect(APIKey, AppSecret, reqId, True)
+    except:
+        print('error logging in get new eqID')
+        Common.copyToClipboard(accid)
+        webbrowser.open_new('https://www.edelweiss.in/api-connect/login?api_key=QDFbQZIsst9A6A')
+        return 0
 
     with zipfile.ZipFile("instruments.zip", 'r') as zip_ref:
         zip_ref.extractall(os.getcwd())
     print('Logged in')
+    return 1
 
+def setReqID(request_id):
+    global reqId
+    reqId = request_id
+    # storage.setSymbolInfo('App', 'reqId', reqId)
+    main.startAnalysis()
 
 # authResponse = client.__GetAuthorization(reqId)
 
 
 def initLiveData(callback):
-    print('waiting for Data')
+
     s = []
     for key in Common.SymbolDict.keys():
         s.append(Common.SymbolDict[key].exchangeToken)
     global f
     f = Feed(accid, userID, "python-settings.ini")
     f.subscribe(s, callback)
+    print('waiting for Data',datetime.datetime.now())
+
+
 
 
 def initLocalFile(callback):

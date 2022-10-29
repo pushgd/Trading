@@ -11,6 +11,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker'
 import { MatNativeDateModule } from '@angular/material/core'
+import { MatCardModule } from '@angular/material/card';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { StrategyComponentComponent } from './strategy-component/strategy-component.component';
 import { StrategyParameterComponentComponent } from './strategy-parameter-component/strategy-parameter-component.component'
@@ -20,6 +21,13 @@ import { StrategySimulateParametersComponentComponent } from './strategy-simulat
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { BackendServiceService } from './backend-service.service';
+import { AppRoutingModule } from './app-routing.module';
+import { NavigationContainerComponent } from './navigation-container/navigation-container.component';
+import { TradeComponent } from './trade/trade.component';
+import { TradeContainerComponent } from './trade-container/trade-container.component';
+import { MatStepperModule } from '@angular/material/stepper';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 @NgModule({
   declarations: [
     AppComponent,
@@ -28,7 +36,10 @@ import { BackendServiceService } from './backend-service.service';
     StrategyComponentComponent,
     StrategyParameterComponentComponent,
     StrategySimulateComponentComponent,
-    StrategySimulateParametersComponentComponent
+    StrategySimulateParametersComponentComponent,
+    NavigationContainerComponent,
+    TradeComponent,
+    TradeContainerComponent
   ],
   imports: [
     BrowserModule,
@@ -43,7 +54,12 @@ import { BackendServiceService } from './backend-service.service';
     MatNativeDateModule,
     ClipboardModule,
     MatIconModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    AppRoutingModule,
+    MatCardModule,
+    MatStepperModule,
+    MatProgressSpinnerModule,
+    MatSlideToggleModule
   ],
   providers: [BackendServiceService],
   bootstrap: [AppComponent]

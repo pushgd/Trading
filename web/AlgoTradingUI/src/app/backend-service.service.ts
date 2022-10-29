@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
-import { parameter } from './common';
+import { parameter, symbolTickInfo, tradeInfo } from './common';
 @Injectable({
   providedIn: 'root'
 })
 export class BackendServiceService {
-
+  symbolCurrentPrice: symbolTickInfo[] = [];
   constructor() {
 
     console.log("Service Constructor");
@@ -55,25 +55,30 @@ export class BackendServiceService {
     try {
       let response = await fetch(`http://127.0.0.1:8080/getCurrentPrice/all`, options);
       let json = await response.json();
-      return json;
+      this.symbolCurrentPrice = json as symbolTickInfo[];
+      return this.symbolCurrentPrice;
     } catch (e) {
       console.log("Error getting current price")
       return [];
     }
   }
 
+  public getCurrentPriceForSymbol(symbol: string): any {
+    let s = symbol as keyof typeof this.symbolCurrentPrice
+    return this.symbolCurrentPrice[s];
+  }
 
   public async startStrategy(symbol: string, strategy: string, parameters: parameter[]): Promise<any> {
     // let result;
     let p = "";
     for (let i = 0; i < parameters.length; i++) {
-      p += `"${encodeURIComponent(parameters[i].name)}":"${encodeURIComponent(parameters[i].value)}"`;
+      p += `,"${encodeURIComponent(parameters[i].name)}":"${encodeURIComponent(parameters[i].value)}"`;
     }
     const options = {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
-      }, method: 'POST', body: `{"strategy":"${encodeURIComponent(strategy)}",${p}}`
+      }, method: 'POST', body: `{"strategy":"${encodeURIComponent(strategy)}"${p}}`
     };
     console.log(options.body);
     let response = await fetch(`http://127.0.0.1:8080/setStrategy/${symbol}`, options);
@@ -81,8 +86,40 @@ export class BackendServiceService {
 
     // let response = await fetch(`http://127.0.0.1:8080/simulate/${symbol}`, options);
 
-    console.log(json);
-    console.log(p);
     return json;
+  }
+  public async removeStrategy(symbol: string, strategy: string): Promise<any> {
+    // let result;
+    const options = {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }, method: 'POST', body: `{"strategy":"${encodeURIComponent(strategy)}"}`
+    };
+    console.log(options.body);
+    let response = await fetch(`http://127.0.0.1:8080/removeStrategy/${symbol}`, options);
+    let json = await response.json();
+
+    // let response = await fetch(`http://127.0.0.1:8080/simulate/${symbol}`, options);
+
+    return json;
+  }
+
+
+
+  public async getActiveTradesForSymbol(symbol: string) {
+    const options = { method: 'GET' };
+
+    let response = await fetch(`http://127.0.0.1:8080/getActiveTrades/${symbol}`, options);
+    let json = await response.json();
+    return json as tradeInfo[];
+  }
+  public async getAllTradesForSymbol(symbol: string) {
+    const options = { method: 'GET' };
+
+    let response = await fetch(`http://127.0.0.1:8080/getTrades/${symbol}`, options);
+    let json = await response.json();
+    console.log(json);
+    return json as tradeInfo[];
   }
 }

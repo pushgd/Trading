@@ -44,10 +44,11 @@ class CandleCreator():
 
 
 class StrategyBaseClass:
-    def __init__(self, symbolCallBack, trade, candleFrequency=5 * 60, params=None):
+    def __init__(self, symbolCallBack, trade, params=None):
         if params is None:
             params = {}
         self.top = None
+        self.quantity = int(params.get(Constant.PARAMETER_QUANTITY,1))
         if Constant.KEY_TICK_DATA in params:
             self.tickData = params[Constant.KEY_TICK_DATA].copy()
         else:
@@ -55,22 +56,28 @@ class StrategyBaseClass:
         self.tickData = []
         self.topIndex = -1
         self.candleCreator = CandleCreator(
-            candleFrequency, self.onCandleComplete)
+            int(params.get(Constant.PARAMETER_CANDLE_FREQUENCY,5*60)), self.onCandleComplete)
         self.symbolCallBack = symbolCallBack
         self.trade = trade
         self.params = params
         self.exchangeToken = ''
         self.tradingSymbol = ''
-        self.quantity = 0
+        # self.quantity = params.get(Constant.PARAMETER_QUANTITY)
+
 
     def update(self, trade, lastTradedPrice, volume):
         self.candleCreator.createCandle(lastTradedPrice, volume)
-        if self.trade.startDate != None and self.trade.startDate.date() < self.top.info[Constant.KEY_DATE].date():
-            trade.status = Constant.TRADE_TIMED_OUT
-            trade.timeOutDate = self.top.info[Constant.KEY_DATE]
-            self.symbolCallBack(Constant.EVENT_TRADE_TIMEOUT, self.tickData, self)
+        if self.trade.startDate != None and self.trade.startDate.date() < self.top.info[Constant.KEY_DATE].date() and  self.trade.status != Constant.TRADE_STATUS.COMPLETED:
+            trade.status = Constant.TRADE_STATUS.TIMED_OUT
+            trade.exitDate = self.top.info[Constant.KEY_DATE]
+            trade.exitPrice = lastTradedPrice
+            trade.gain = trade.entryPrice - trade.exitPrice
+            self.params[Constant.PARAMETER_QUANTITY] = self.quantity
+            self.params[Constant.PARAMETER_TICK_DATA] = self.tickData
+            self.symbolCallBack(Constant.STRATEGY_EVENT.TRADE_TIMEOUT, self.params, self)
             print("timeout ", trade.symbol.symbolName, " on ", trade.timeOutDate, " startDate ",
                   self.trade.startDate)
+            return
         self.updateStrategy(trade, lastTradedPrice, volume)
 
     @abc.abstractmethod
@@ -78,7 +85,7 @@ class StrategyBaseClass:
         print("Update base class")
 
     def onCandleComplete(self, candle):
-        self.symbolCallBack(Constant.EVENT_CANDLE_CREATED, candle, self)
+        self.symbolCallBack(Constant.STRATEGY_EVENT.CANDLE_CREATED, candle, self)
         # print("Candle Created for symbol ", self.trade.symbol.symbol, " candle ", candle)
         if not self.trade.simulate:
             Common.LogAction("candleCreated," + str(candle) + "," +
@@ -132,10 +139,10 @@ class GannAnalysis(StrategyBaseClass):
 
     def updateStrategy(self, trade, currentPrice, volume):
 
-        if trade.status == Constant.TRADE_LOOKING_FOR_ENTRY:
+        if trade.status == Constant.TRADE_STATUS.LOOKING_FOR_ENTRY:
             if currentPrice > trade.buyTriggerCall:
 
-                trade.entryTime = time.time()
+                # trade.entryTime = time.time()
                 trade.takeProfit = Common.getNextGannLevel(
                     trade.buyTriggerCall + 1)
                 trade.stopLoss = Common.getPreviousGannLevel(
@@ -164,7 +171,7 @@ class GannAnalysis(StrategyBaseClass):
                 print("____________________________________________")
 
 
-        elif trade.status == Constant.TRADE_ENTERED:
+        elif trade.status == Constant.TRADE_STATUS.ENTERED:
             if (currentPrice > trade.takeProfit and trade.type == Constant.TRADE_TYPE_CALL) or (
                     currentPrice < trade.takeProfit and trade.type == Constant.TRADE_TYPE_PUT):
 
@@ -177,22 +184,22 @@ class GannAnalysis(StrategyBaseClass):
             # if not trade.simulate and datetime.datetime.now() > Constant.EXIT_TIME :
             #     print(f"looking for Exit {trade.symbol.symbolName}")
             #     trade.status = Constant.TRADE_LOOKING_FOR_EXIT
-        elif trade.status == Constant.TRADE_LOOKING_FOR_EXIT:
+        elif trade.status == Constant.TRADE_STATUS.LOOKING_FOR_EXIT:
             if trade.entryPrice > currentPrice:
                 trade.exitPrice = currentPrice
                 print(
                     f" Exiting trade {trade.symbol.symbolName} on {datetime.datetime.now()} for price {trade.exitPrice} gain {trade.exitPrice - trade.entryPrice}")
                 Common.LogAction("ExitTrade, exit," + str(self.trade.exitPrice) + "," + str(
                     self.trade.gain) + "," + trade.strategyName + "," + str(self.trade.symbol.symbolName))
-                trade.status = Constant.TRADE_COMPLETED
+                trade.status = Constant.TRADE_STATUS.COMPLETED
 
     def onNewCandleCreated(self, candle):
-        if self.trade.status == Constant.TRADE_NOT_STARTED:
+        if self.trade.status == Constant.TRADE_STATUS.NOT_STARTED:
             self.trade.buyTriggerCall = Common.getNextGannLevel(
                 candle[Constant.KEY_OPEN])
             self.trade.buyTriggerPut = Common.getPreviousGannLevel(
                 candle[Constant.KEY_OPEN])
-            self.trade.status = Constant.TRADE_LOOKING_FOR_ENTRY
+            self.trade.status = Constant.TRADE_STATUS.LOOKING_FOR_ENTRY
             if not self.trade.simulate:
                 Common.LogAction("EnteringTrade, " + str(self.trade.buyTriggerCall) + "," + str(
                     self.trade.buyTriggerPut) + ",," + str(self.trade.symbol.symbolName))
@@ -202,10 +209,10 @@ class GannAnalysis(StrategyBaseClass):
         # print("Candle Created for symbol ",self.trade.symbol.symbol," candle ",candle)
 
     def enterStrategy(self, trade, currentPrice):
-        trade.entryTime = time.time()
+        trade.entryTime = datetime.datetime.now()
         trade.buyDate = self.top.info[Constant.KEY_DATE]
         if trade.simulate:
-            trade.status = Constant.TRADE_ENTERED
+            trade.status = Constant.TRADE_STATUS.ENTERED
             return
 
         Common.LogAction(
@@ -225,10 +232,10 @@ class GannAnalysis(StrategyBaseClass):
                 self.trade.symbol.optionSymbol, Common.getNextStrikePrice(self.trade.entryPrice), trade.type)
         self.trade.tradingSymbol = o['tradingsymbol']
         self.trade.exchangeToken = o['exchangetoken']
-        self.trade.quantity = o['lotsize'] #int(o['lotsize']) * int(self.trade.quantity)
+        self.trade.quantity = int(o['lotsize'])*self.quantity #int(o['lotsize']) * int(self.trade.quantity)
         if trade.symbol.buy(self.trade.tradingSymbol,
                          self.trade.exchangeToken, self.trade.quantity, exchange=ExchangeEnum.NFO):
-            trade.status = Constant.TRADE_ENTERED
+            trade.status = Constant.TRADE_STATUS.ENTERED
 
     def exitStrategy(self, trade, currentPrice):
         trade.exitPrice = currentPrice
@@ -236,7 +243,8 @@ class GannAnalysis(StrategyBaseClass):
         trade.exitDate = self.top.info[Constant.KEY_DATE]
 
         if trade.simulate:
-            trade.status = Constant.TRADE_COMPLETED
+            trade.status = Constant.TRADE_STATUS.COMPLETED
+            self.symbolCallBack(Constant.STRATEGY_EVENT.TRADE_COMPLETED, self.params, self)
             return
 
         if trade.gain > 0:
@@ -247,18 +255,18 @@ class GannAnalysis(StrategyBaseClass):
                 self.trade.gain) + "," + trade.strategyName + "," + str(self.trade.symbol.symbolName))
         if trade.symbol.sell(self.trade.tradingSymbol,
                           self.trade.exchangeToken, self.trade.quantity,exchange=ExchangeEnum.NFO):
-            trade.status = Constant.TRADE_COMPLETED
-        self.symbolCallBack(Constant.EVENT_TRADE_COMPLETED,self.params, self)
+            trade.status = Constant.TRADE_STATUS.COMPLETED
+        self.symbolCallBack(Constant.STRATEGY_EVENT.TRADE_COMPLETED,self.params, self)
 
 
 class MACrossover(StrategyBaseClass):
 
     def updateStrategy(self, trade, currentPrice, volume):
-        if trade.status == Constant.TRADE_LOOKING_FOR_ENTRY:
+        if trade.status == Constant.TRADE_STATUS.LOOKING_FOR_ENTRY:
             if currentPrice > trade.buyTriggerCall:
                 self.enterStrategy(trade, currentPrice)
 
-        elif trade.status == Constant.TRADE_ENTERED:
+        elif trade.status == Constant.TRADE_STATUS.ENTERED:
             if currentPrice > trade.takeProfit:
                 self.exitStrategy(trade, currentPrice)
                 print("Profit Sell ", trade.symbol.symbolName, "on ", self.top.info[Constant.KEY_DATE], " for price ",
@@ -273,7 +281,7 @@ class MACrossover(StrategyBaseClass):
                 print("               *************************                 ")
 
     def onNewCandleCreated(self, candle):
-        if self.trade.status == Constant.TRADE_NOT_STARTED and datetime.datetime.now().time() > self.trade.startTime:
+        if self.trade.status == Constant.TRADE_STATUS.NOT_STARTED and datetime.datetime.now().time() > self.trade.startTime:
             if self.topIndex < 2:
                 return
             last = self.tickData[self.trade.symbol.topIndex - 1]
@@ -282,7 +290,7 @@ class MACrossover(StrategyBaseClass):
                     self.top.info[Constant.KEY_MOVING_AVERAGE_SHORT_CLOSE] >= self.top.info[
                 Constant.KEY_MOVING_AVERAGE_MEDUIM_CLOSE] and \
                     self.top.info[Constant.KEY_RSI] >= 55:
-                self.trade.status = Constant.TRADE_LOOKING_FOR_ENTRY
+                self.trade.status = Constant.TRADE_STATUS.LOOKING_FOR_ENTRY
                 self.trade.buyTriggerCall = self.top.info[Constant.KEY_HIGH]
                 self.trade.stopLoss = Common.getLowestValue(self)
                 self.trade.takeProfit = self.trade.buyTriggerCall + \
@@ -299,7 +307,7 @@ class MACrossover(StrategyBaseClass):
                       " ", self.top.info[Constant.KEY_DATE])
 
     def enterStrategy(self, trade, currentPrice):
-        trade.status = Constant.TRADE_ENTERED
+        trade.status = Constant.TRADE_STATUS.ENTERED
         trade.entryPrice = currentPrice
         trade.buyDate = self.top.info[Constant.KEY_DATE]
         print("MAC Buy ", trade.symbol.symbolName, "on ", self.top.info[Constant.KEY_DATE], " for Price ",
@@ -309,14 +317,14 @@ class MACrossover(StrategyBaseClass):
         print("____________________________________________")
 
     def exitStrategy(self, trade, currentPrice):
-        trade.status = Constant.TRADE_COMPLETED
+        trade.status = Constant.TRADE_STATUS.COMPLETED
         trade.exitPrice = currentPrice
         trade.gain = (trade.exitPrice - trade.entryPrice)
 
         trade.exitDate = self.top.info[Constant.KEY_DATE]
         self.params[Constant.PARAMETER_TICK_DATA] = self.tickData
         self.params[Constant.PARAMETER_TICK_DATA] = self.tickData
-        self.symbolCallBack(Constant.EVENT_TRADE_COMPLETED, self.params, self)
+        self.symbolCallBack(Constant.STRATEGY_EVENT.TRADE_COMPLETED, self.params, self)
 
 
 def init():
