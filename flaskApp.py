@@ -8,7 +8,7 @@ import Constant
 import Common
 import execute
 import storage
-
+import simulate
 app = Flask(__name__)
 
 cors = CORS(app)
@@ -162,16 +162,16 @@ def removeStrategy(symbol):
     return replay
 
 @app.route("/simulate/<symbol>", methods=['GET'])
-def simulate(symbol):
+def simulateSymbol(symbol):
     startDate = request.args.get("startDate")
     endDate = request.args.get("endDate")
     strategy = request.args.get("strategy")
     print(symbol," ",startDate," ",endDate," ",strategy)
     replay = "reply"
-    try:
-        replay = jsonify(execute.simulate(symbol,startDate,endDate,strategy))
-    except Exception as e:
-        replay = jsonify(str(e))
+    # try:
+    replay = jsonify(simulate.simulate(symbol,startDate,endDate,strategy))
+    # except Exception as e:
+    #     replay = jsonify(str(e))
     replay.headers.add('Access-Control-Allow-Origin', '*')
     return replay
 

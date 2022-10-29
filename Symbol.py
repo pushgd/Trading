@@ -96,7 +96,7 @@ class Symbol:
                     row.append(tick.info[c])
                 csvwriter.writerow(row)
 
-    def setStrategy(self, strategy,params=None,historicalData =None):
+    def setStrategy(self, strategy,params=None):
         trade = Common.Trade(self)
         trade.strategyName = strategy
         if strategy == Constant.STRATEGY_GANN_ANALYSIS:
@@ -105,15 +105,15 @@ class Symbol:
 
             trade.strategy = MACrossover(self.OnStrategyEvent, trade, params=params)
 
-            if len(list(filter(lambda t: t.strategy == Constant.STRATEGY_MA_CROSSOVER_UP,self.tradeList))) == 0:  #check if there is any old trade for MAC
+            if len(list(filter(lambda t: t.strategyName == Constant.STRATEGY_MA_CROSSOVER_UP,self.tradeList))) == 0:  #check if there is any old trade for MAC
                 print("Get historical data for ",self.symbolName)
                 tillDate = Common.getTillDate()
-                if historicalData == None:
-                    historicalData = json.loads(
-                    self.gethHistoricalData(IntradayIntervalEnum.M5, str(tillDate.year), str(tillDate.month),str(tillDate.day)))
-                    data = historicalData['data']
-                else:
-                    data = historicalData
+                # if not Constant.PARAMETER_TICK_DATA in params:
+                historicalData = json.loads(
+                self.gethHistoricalData(IntradayIntervalEnum.M5, str(tillDate.year), str(tillDate.month),str(tillDate.day)))
+                data = historicalData['data']
+                # else:
+                #     data = params[Constant.PARAMETER_TICK_DATA]
                 print("Candles received ",len(data))
                 for candle in data:
                     c = {

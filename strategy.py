@@ -281,7 +281,7 @@ class MACrossover(StrategyBaseClass):
                 print("               *************************                 ")
 
     def onNewCandleCreated(self, candle):
-        if self.trade.status == Constant.TRADE_STATUS.NOT_STARTED and datetime.datetime.now().time() > self.trade.startTime:
+        if self.trade.status == Constant.TRADE_STATUS.NOT_STARTED and( self.trade.simulate or datetime.datetime.now() > self.trade.startTime):
             if self.topIndex < 2:
                 return
             last = self.tickData[self.trade.symbol.topIndex - 1]
@@ -323,7 +323,7 @@ class MACrossover(StrategyBaseClass):
 
         trade.exitDate = self.top.info[Constant.KEY_DATE]
         self.params[Constant.PARAMETER_TICK_DATA] = self.tickData
-        self.params[Constant.PARAMETER_TICK_DATA] = self.tickData
+        # self.params[Constant.PARAMETER_TICK_DATA] = self.tickData
         self.symbolCallBack(Constant.STRATEGY_EVENT.TRADE_COMPLETED, self.params, self)
 
 

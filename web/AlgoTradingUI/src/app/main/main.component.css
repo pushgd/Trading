@@ -13,8 +13,6 @@ table {
     width: 98%;
 }
 
-.mat-column-table {}
-
 .mat-column-table-position {
     width: 0.1%;
     border-right: 1px solid currentColor;
@@ -40,7 +38,7 @@ table {
 }
 
 .mat-column-table-strategy {
-    width: 2%;
+    width: 1%;
     border-right: 1px solid currentColor;
     padding-right: 12px;
     padding-left: 12px;

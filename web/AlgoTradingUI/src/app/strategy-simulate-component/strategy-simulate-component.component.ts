@@ -83,11 +83,14 @@ export class StrategySimulateComponentComponent implements OnInit {
       this.simulateLogs += `Trade Identified => ${t.startDate} BuyTriggerCall =>${t.buyTriggerCall} BuyTriggerPut =>${t.buyTriggerPut} \n`;
       if (t.status != 'TRADE_STATUS.TIMED_OUT') {
         this.simulateLogs += `Buy => ${t.buyDate} EntryPrice => ${t.entryPrice} StopLoss => ${t.stopLoss} TakeProfit => ${t.takeProfit} \n`;
-        this.simulateLogs += `Sell ${t.gain > 0 ? "Profit" : "Lose"} => ${t.exitDate} ExitPrice => ${t.exitPrice} Gain => ${t.gain}\n`;
+        this.simulateLogs += `Sell ${t.gain > 0 ? "Profit" : "Lose"} => ${t.exitDate} ExitPrice => ${t.exitPrice} Gain => ${t.gain}`;
       } else {
-        this.simulateLogs += `Trade timeOut => ${t.exitDate}\n`;
+        this.simulateLogs += `Trade timeOut => ${t.exitDate} `;
+        if (t.entryPrice >= 0) {
+          this.simulateLogs += `Gain => ${t.gain}`;
+        }
       }
-      this.simulateLogs += "-----------------------\n";
+      this.simulateLogs += "\n-----------------------\n";
     }
     this.copyToClipBoard();
   }
