@@ -1,5 +1,6 @@
 import datetime
 import logging
+import sys
 import threading
 
 import Constant
@@ -13,6 +14,7 @@ import execute
 import API
 import DBHelper
 import flaskApp
+import os
 
 
 
@@ -76,13 +78,16 @@ def main():
 
 
     while 1:
-        diff = datetime.datetime.now() - execute.lastUpdateTime
-        if diff.seconds >130:
-            print("restarting API")
-            API.initLiveData(execute.onNewData)
-            execute.lastUpdateTime = datetime.datetime.now()
-        time.sleep(1)
-        # print(diff)
+        try:
+            diff = datetime.datetime.now() - execute.lastUpdateTime
+            if diff.seconds >130:
+                print("restarting API")
+                API.initLiveData(execute.onNewData)
+                execute.lastUpdateTime = datetime.datetime.now()
+            time.sleep(1)
+        except KeyboardInterrupt as e:
+            print('Keyboad Interrupt stopping')
+            os._exit(0)
 
 
 print(__name__)
