@@ -52,7 +52,7 @@ def simulate(symbol,startDate,endDate,strategy,parames={}):
 def simulateMACrossoverUp(historicalData, inBetweenHistoricalData, lastDate, s, startDate, strategy):
     oldData = [i for i in historicalData if
                       datetime.datetime.strptime(i[0], "%Y-%m-%d %H:%M:%S") < startDate]
-    s.setStrategy(strategy ).simulate =True
+    s.setStrategy(strategy,simulate = True ).simulate =True
     lastIndex = 0
     for candle in historicalData:
 
@@ -82,7 +82,7 @@ def simulateMACrossoverUp(historicalData, inBetweenHistoricalData, lastDate, s, 
         s.tradeList[-1].strategy.onCandleComplete(c)
         # print("Done for ",date)
 def simulateGANN(historicalData, inBetweenHistoricalData, lastDate, s, startDate, strategy):
-    s.setStrategy(strategy).simulate = True
+    s.setStrategy(strategy,simulate = True).simulate = True
     lastIndex = 0
     for candle in historicalData:
 

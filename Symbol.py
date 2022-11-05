@@ -96,8 +96,9 @@ class Symbol:
                     row.append(tick.info[c])
                 csvwriter.writerow(row)
 
-    def setStrategy(self, strategy,params=None):
+    def setStrategy(self, strategy,params=None,simulate = False):
         trade = Common.Trade(self)
+        trade.simulate = simulate
         trade.strategyName = strategy
         if strategy == Constant.STRATEGY_GANN_ANALYSIS:
             trade.strategy = GannAnalysis(self.OnStrategyEvent, trade,params=params)
@@ -131,7 +132,8 @@ class Symbol:
 
         print("Strategy set to ", strategy," for ",self.symbolName)
         self.tradeList.append(trade)
-        storage.setTradeInfo(self.symbolName,trade)
+        if not trade.simulate:
+            storage.setTradeInfo(self.symbolName,trade)
         return trade
 
     def onNewData(self, lastTradedPrice, volume):
@@ -153,9 +155,11 @@ class Symbol:
         if event == Constant.STRATEGY_EVENT.CANDLE_CREATED:
             self.onCandleComplete(params)
         if event == Constant.STRATEGY_EVENT.TRADE_COMPLETED or event == Constant.STRATEGY_EVENT.TRADE_TIMEOUT:
-            self.setStrategy(strategy.trade.strategyName,params=params).simulate = self.tradeList[-1].simulate
+            self.setStrategy(strategy.trade.strategyName,params=params,simulate=self.tradeList[-1].simulate)
             try:
-                storage.setTradeInfo(self.symbolName,strategy.trade)
+                if not strategy.trade.simulate:
+                    storage.setTradeInfo(self.symbolName,strategy.trade)
+                
             except Exception as e:
                 print(f"Error saving trade Info {self.symbolName} {e}")
 
