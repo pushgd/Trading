@@ -10,7 +10,8 @@
         </mat-panel-title>
         <mat-panel-description>
 
-            <button mat-raised-button style="margin:5px;" color="warn" (click)="$event.stopPropagation()">Exit</button>
+            <button *ngIf="!allTrade" mat-raised-button style="margin:5px;" color="warn"
+                (click)="$event.stopPropagation()">Exit</button>
         </mat-panel-description>
     </mat-expansion-panel-header>
 

@@ -12,6 +12,7 @@ import { tradeInfo } from '../common';
 export class TradeComponent implements OnInit {
   @Input() info: tradeInfo;
   @Input() symbol: string = '';
+  @Input() allTrade: boolean = false;
   currentstep: number = 0;
   currentPrice: number = 0;
   // backendService: BackendServiceService;

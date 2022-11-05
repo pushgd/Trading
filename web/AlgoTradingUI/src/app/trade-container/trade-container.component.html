@@ -9,12 +9,14 @@
                 Refresh</button>
             <mat-spinner diameter="25" style="margin:5px;" *ngIf='refreshing'></mat-spinner>
 
-            <button mat-raised-button color="warn" (click)="$event.stopPropagation()">Exit All Trades</button>
+            <button mat-raised-button color="warn" *ngIf="!getAllTrades" (click)="$event.stopPropagation()">Exit All
+                Trades</button>
 
         </mat-panel-description>
     </mat-expansion-panel-header>
 
-    <app-trade *ngFor="let trade of tradelist" [info]="trade" [symbol]="tradingSymbol"></app-trade>
+    <app-trade *ngFor="let trade of tradelist" [info]="trade" [symbol]="tradingSymbol" [allTrade]="getAllTrades">
+    </app-trade>
 
 
 </mat-expansion-panel>

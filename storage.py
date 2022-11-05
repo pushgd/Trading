@@ -49,3 +49,19 @@ def setTradeInfo(symbolName,trade):
     jsonFile = open(fileName, "w+")
     jsonFile.write(json.dumps(data))
     jsonFile.close()
+
+def getTradeInfo(symbol,key,default = None):
+    jsonFile = open(f"storage/trade/{symbol}.json", "r")
+    data = json.load(jsonFile)
+    if key in data:
+        return json.loads( data[key])
+    else:
+        return default
+
+def getAllTradeInfo(symbol):
+    jsonFile = open(f"storage/trade/{symbol}.json", "r")
+    data = json.load(jsonFile)
+    t=[]
+    for k in data.keys():
+        t.append(json.loads( data[k]))
+    return t

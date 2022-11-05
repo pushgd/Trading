@@ -99,12 +99,12 @@ def getCandle(symbol,index):
 
 @app.route("/getTrades/<symbol>", methods=['GET'])
 def getTrade(symbol):
-    s = Common.getSymbolBySymbolName(symbol)
-    replay = []
-    for trade in s.tradeList:
-
-        replay.append(trade.serialize())
-    replay = jsonify(replay)
+    # s = Common.getSymbolBySymbolName(symbol)
+    # replay = []
+    # for trade in s.tradeList:
+    #
+    #     replay.append(trade.serialize())
+    replay = jsonify(storage.getAllTradeInfo(symbol))
     replay.headers.add('Access-Control-Allow-Origin', '*')
     return replay
 
