@@ -39,9 +39,9 @@ export class StrategySimulateComponentComponent implements OnInit {
     let parameters = this.parameter.getParameters();
     let startDate = new Date(this.dateStart);
     let endDate = new Date(this.dateEnd);
-    this.simulateLogs = `starting Simulation for ${this.symbolName} from ${startDate.getFullYear() + "-" + startDate.getMonth() + "-" + startDate.getDate()} to ${endDate.getFullYear() + "-" + endDate.getMonth() + "-" + endDate.getDate()} \n`;
+    this.simulateLogs = `starting Simulation for ${this.symbolName} from ${startDate.getFullYear()}-${startDate.getMonth()+1}-${startDate.getDate()} to ${endDate.getFullYear()}-${endDate.getMonth()+1}-${endDate.getDate()} \n`;
     parameters.forEach(p => this.simulateLogs = this.simulateLogs + ` ${p.name} = ${p.value} \n`)
-    this.backEndService.simulate(this.symbolName, s.name, startDate.getFullYear() + "-" + startDate.getMonth() + "-" + startDate.getDate(), endDate.getFullYear() + "-" + endDate.getMonth() + "-" + endDate.getDate())
+    this.backEndService.simulate(this.symbolName, s.name, startDate.getFullYear() + "-" + (startDate.getMonth()+1) + "-" + startDate.getDate(), endDate.getFullYear() + "-" + (endDate.getMonth()+1) + "-" + endDate.getDate())
       .then(response => this.simulateCallback(response));
   }
 
